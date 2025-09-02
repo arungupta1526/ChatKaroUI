@@ -1,0 +1,844 @@
+<div align="center">
+<h1><kbd>🧩 ChatKaroUI</kbd></h1>
+
+ChatKaroUI is a `customizable advance chat component extension` with text, images and messages support.
+
+<span><a href="https://community.appinventor.mit.edu/" target="_blank"><small><mark>Mit AI2 Community</mark></small></a></span> | <span><a href="https://community.kodular.io/" target="_blank"><small><mark>Kodular Community</mark></small></a></span>
+
+</div>
+
+## 📝 Specifications
+
+---
+
+🔎 **Use Place:** An extension for _`MIT App Inventor 2, Kodular, Niotron, Android Builder.`_ <br>
+👤 **Author:** Created by: [Prem_Gupta](https://community.appinventor.mit.edu/u/prem_gupta/summary) <br>
+📦 **Package:** com.prem.chatkaroui <br>
+💾 **Size:** 41.96 KB <br>
+⚙️ **Version:** 1.0 <br>
+📱 **Minimum API Level:** 14 <br>
+📅 **Updated On:** [date=2025-09-02 timezone="Asia/Calcutta"] <br>
+🔗 **Help URL:** [Telegram](https://www.telegram.me/Arungupta1526) <br>
+💻 **Built & documented using:** [FAST](https://community.appinventor.mit.edu/t/fast-an-efficient-way-to-build-publish-extensions/129103?u=jewel) <small><mark>v4.4.0</mark></small> <br>
+⬇️ **Aix:** [Download Link](./out/com.prem.chatkaroui.aix) <br>
+
+---
+
+## <kbd>Total Blocks of Extension:</kbd>
+
+![Total Blocks of Extension](./out/blocks/appinventor/ChatKaroUI/blocks.png) <br>
+
+---
+
+## <kbd>Events:</kbd>
+
+**ChatKaroUI** has total 8 events.
+
+### 1. ImageMenuItemClicked
+
+Triggered when image menu item is clicked
+
+| Parameter | Type |
+| --------- | ---- |
+| itemText  | text |
+| imageUrl  | text |
+
+### 2. ImageAlreadyExists
+
+Called when the image already exists and was not re-saved.
+
+| Parameter    | Type |
+| ------------ | ---- |
+| absolutePath | text |
+| fileName     | text |
+
+### 3. ImageSaved
+
+Called when an image is saved successfully. Returns absolute path and file name.
+
+| Parameter    | Type |
+| ------------ | ---- |
+| absolutePath | text |
+| fileName     | text |
+
+### 4. ImageSaveFailed
+
+Called when saving an image fails. Returns the error message.
+
+| Parameter    | Type |
+| ------------ | ---- |
+| errorMessage | text |
+
+### 5. ProfilePictureClicked
+
+Triggered when profile picture is clicked
+
+| Parameter | Type |
+| --------- | ---- |
+| name      | text |
+| avatarUrl | text |
+
+### 6. MessageSelected
+
+Triggered when message is selected
+
+| Parameter | Type   |
+| --------- | ------ |
+| message   | text   |
+| index     | number |
+
+### 7. ClipboardCopySuccess
+
+Fires when text is successfully copied to clipboard
+
+| Parameter  | Type |
+| ---------- | ---- |
+| copiedText | text |
+
+### 8. ClipboardCopyFailed
+
+Fires when copying to clipboard fails
+
+| Parameter | Type |
+| --------- | ---- |
+| error     | text |
+
+## <kbd>Methods:</kbd>
+
+**ChatKaroUI** has total 25 methods.
+
+### 1. Initialize
+
+Initialize the chat UI in a VerticalArrangement. This must be called before adding any messages.
+
+| Parameter   | Type      |
+| ----------- | --------- |
+| arrangement | component |
+
+### 2. SendSimple
+
+Send a simple message without avatar or name
+
+| Parameter | Type |
+| --------- | ---- |
+| message   | text |
+| timestamp | text |
+
+### 3. ReceiveSimple
+
+Receive a simple message without avatar or name
+
+| Parameter | Type |
+| --------- | ---- |
+| message   | text |
+| timestamp | text |
+
+### 4. SendWithAvatar
+
+Send a message with avatar and sender name
+
+| Parameter  | Type |
+| ---------- | ---- |
+| message    | text |
+| avatarUrl  | text |
+| senderName | text |
+| timestamp  | text |
+
+### 5. ReceiveWithAvatar
+
+Receive a message with avatar and sender name
+
+| Parameter    | Type |
+| ------------ | ---- |
+| message      | text |
+| avatarUrl    | text |
+| receiverName | text |
+| timestamp    | text |
+
+### 6. SendTextImage
+
+Send a message with both text and image
+
+| Parameter    | Type    |
+| ------------ | ------- |
+| message      | text    |
+| imageUrl     | text    |
+| avatarUrl    | text    |
+| senderName   | text    |
+| timestamp    | text    |
+| messageOnTop | boolean |
+
+### 7. ReceiveTextImage
+
+Receive a message with both text and image
+
+| Parameter    | Type    |
+| ------------ | ------- |
+| message      | text    |
+| imageUrl     | text    |
+| avatarUrl    | text    |
+| receiverName | text    |
+| timestamp    | text    |
+| messageOnTop | boolean |
+
+### 8. AddSystemMessage
+
+Add system systemMessage (e.g., 'User joined')
+
+| Parameter | Type |
+| --------- | ---- |
+| message   | text |
+
+### 9. DownloadImage
+
+Downloads an image from the URL, saves it to chat-images folder under ASD as PNG or JPG. Fires ImageSaved, ImageAlreadyExists or ImageSaveFailed.
+
+| Parameter | Type |
+| --------- | ---- |
+| imageUrl  | text |
+| format    | text |
+
+### 10. ResetTextMessageMaxWidth
+
+Reset max width to 80% of screen width
+
+### 11. ShowTypingIndicator
+
+Show typing indicator
+
+### 12. HideTypingIndicator
+
+Hide typing indicator
+
+### 13. DeleteMessage
+
+Delete message by position (1-based index)
+
+| Parameter | Type   |
+| --------- | ------ |
+| index     | number |
+
+### 14. ClearAllMessages
+
+Clear all messages
+
+### 15. GetMessageCount
+
+Get total message count
+
+- Return type: `number`
+
+### 16. ClearSelection
+
+Clear message selections
+
+### 17. GetSelectedCount
+
+Get number of selected messages
+
+- Return type: `number`
+
+### 18. DeleteSelectedMessages
+
+Delete selected messages
+
+### 19. AddImageMenuItem
+
+Add custom item to image menu
+
+| Parameter | Type |
+| --------- | ---- |
+| itemText  | text |
+
+### 20. ClearImageMenuItems
+
+Clear custom image menu items
+
+### 21. ResetDateTracking
+
+Reset date tracking for new conversations
+
+### 22. GetYouTubeThumbnail
+
+Get YouTube thumbnail URL from a full URL or video ID.
+
+- Return type: `text`
+
+| Parameter  | Type |
+| ---------- | ---- |
+| youTubeURL | text |
+
+### 23. GetCurrentTime
+
+Get current timestamp formatted as hh:mm a
+
+- Return type: `text`
+
+### 24. GetCurrentDate
+
+Get current date formatted as yyyy-MM-dd
+
+- Return type: `text`
+
+### 25. CopyToClipboard
+
+Copy text to clipboard
+
+| Parameter | Type |
+| --------- | ---- |
+| text      | text |
+
+## <kbd>Designer:</kbd>
+
+**ChatKaroUI** has total 32 designer properties.
+
+### 1. AvatarSize
+
+- Input type: `non_negative_integer`
+- Default value: `40`
+
+### 2. TextMessageMaxWidth
+
+- Input type: `non_negative_integer`
+- Default value: `0`
+
+### 3. ImageMessageMaxWidth
+
+- Input type: `non_negative_integer`
+- Default value: `0`
+
+### 4. FullscreenImageBGColor
+
+- Input type: `color`
+- Default value: `&HFF0C0C0C`
+
+### 5. AvatarBackgroundColor
+
+- Input type: `color`
+- Default value: `&HFFDDDDDD`
+
+### 6. SentMessageTextColor
+
+- Input type: `color`
+- Default value: `&HFFFFFFFF`
+
+### 7. ReceivedMessageTextColor
+
+- Input type: `color`
+- Default value: `&HFF000000`
+
+### 8. SentMessageBackgroundColor
+
+- Input type: `color`
+- Default value: `&HFF0084FF`
+
+### 9. ReceivedMessageBackgroundColor
+
+- Input type: `color`
+- Default value: `&HFFF0F0F0`
+
+### 10. MessageFontSize
+
+- Input type: `non_negative_integer`
+- Default value: `16`
+
+### 11. SystemMessageFontSize
+
+- Input type: `non_negative_integer`
+- Default value: `14`
+
+### 12. SystemMessageTextColor
+
+- Input type: `color`
+- Default value: `&HFF888888`
+
+### 13. SelectedMessageBgColor
+
+- Input type: `color`
+- Default value: `&H8CF9D3FF`
+
+### 14. TypingIndicatorTextColor
+
+- Input type: `color`
+- Default value: `&HFF888888`
+
+### 15. TimestampFontSize
+
+- Input type: `non_negative_integer`
+- Default value: `12`
+
+### 16. TimestampTextColor
+
+- Input type: `color`
+- Default value: `&HFF888888`
+
+### 17. SentStatusTextColor
+
+- Input type: `color`
+- Default value: `&HFF0000FF`
+
+### 18. ReceivedStatusTextColor
+
+- Input type: `color`
+- Default value: `&HFFFF00FF`
+
+### 19. SentStatusText
+
+- Input type: `string`
+- Default value: `✓✓`
+
+### 20. ReceivedStatusText
+
+- Input type: `string`
+- Default value: `🚀`
+
+### 21. SentNameTextColor
+
+- Input type: `color`
+- Default value: `&HFF000000`
+
+### 22. ReceivedNameTextColor
+
+- Input type: `color`
+- Default value: `&HFF000000`
+
+### 23. NameFontSize
+
+- Input type: `non_negative_integer`
+- Default value: `12`
+
+### 24. MessageCornerRadius
+
+- Input type: `float`
+- Default value: `20.0`
+
+### 25. MessageHorizontalPadding
+
+- Input type: `non_negative_integer`
+- Default value: `16`
+
+### 26. MessageVerticalPadding
+
+- Input type: `non_negative_integer`
+- Default value: `12`
+
+### 27. ShowTimestamp
+
+- Input type: `boolean`
+- Default value: `True`
+
+### 28. ShowReadStatus
+
+- Input type: `boolean`
+- Default value: `True`
+
+### 29. AutoLinkEnabledInChat
+
+- Input type: `boolean`
+- Default value: `True`
+
+### 30. ShowMetadataInsideBubble
+
+- Input type: `boolean`
+- Default value: `False`
+
+### 31. ImageWidthFixInTextImageMessage
+
+- Input type: `boolean`
+- Default value: `True`
+
+### 32. CustomFontFamily
+
+- Input type: `asset`
+
+## <kbd>Setters:</kbd>
+
+**ChatKaroUI** has total 32 setter properties.
+
+### 1. AvatarSize
+
+Get avatar size in DP
+
+- Input type: `number`
+
+### 2. TextMessageMaxWidth
+
+Get max width for text messages in DP
+
+- Input type: `number`
+
+### 3. ImageMessageMaxWidth
+
+Get max width for image messages in DP
+
+- Input type: `number`
+
+### 4. FullscreenImageBGColor
+
+Get background color for fullscreen image viewer
+
+- Input type: `number`
+
+### 5. AvatarBackgroundColor
+
+Get background color for avatars
+
+- Input type: `number`
+
+### 6. SentMessageTextColor
+
+Get text color for sent messages
+
+- Input type: `number`
+
+### 7. ReceivedMessageTextColor
+
+Get text color for received messages
+
+- Input type: `number`
+
+### 8. SentMessageBackgroundColor
+
+Get background color for sent messages
+
+- Input type: `number`
+
+### 9. ReceivedMessageBackgroundColor
+
+Get background color for received messages
+
+- Input type: `number`
+
+### 10. MessageFontSize
+
+Get font size for messages
+
+- Input type: `number`
+
+### 11. SystemMessageFontSize
+
+Get font size for messages
+
+- Input type: `number`
+
+### 12. SystemMessageTextColor
+
+Get text color for system systemMessages
+
+- Input type: `number`
+
+### 13. SelectedMessageBgColor
+
+Get background color for message selection
+
+- Input type: `number`
+
+### 14. TypingIndicatorTextColor
+
+Get text color for typing indicator
+
+- Input type: `number`
+
+### 15. TimestampFontSize
+
+Get text size for timestamps
+
+- Input type: `number`
+
+### 16. TimestampTextColor
+
+Get text color for timestamps
+
+- Input type: `number`
+
+### 17. SentStatusTextColor
+
+Get text color for sent status
+
+- Input type: `number`
+
+### 18. ReceivedStatusTextColor
+
+Get text color for received status
+
+- Input type: `number`
+
+### 19. SentStatusText
+
+Get status text for sent messages
+
+- Input type: `text`
+
+### 20. ReceivedStatusText
+
+Get status text for received messages
+
+- Input type: `text`
+
+### 21. SentNameTextColor
+
+Get text color for sender names in sent messages
+
+- Input type: `number`
+
+### 22. ReceivedNameTextColor
+
+Get text color for sender names in received messages
+
+- Input type: `number`
+
+### 23. NameFontSize
+
+Get font size for sender names
+
+- Input type: `number`
+
+### 24. MessageCornerRadius
+
+Get corner radius for message bubbles
+
+- Input type: `number`
+
+### 25. MessageHorizontalPadding
+
+Get horizontal padding inside message bubbles
+
+- Input type: `number`
+
+### 26. MessageVerticalPadding
+
+Get vertical padding inside message bubbles
+
+- Input type: `number`
+
+### 27. ShowTimestamp
+
+Get whether timestamps are shown
+
+- Input type: `boolean`
+
+### 28. ShowReadStatus
+
+Get whether read status indicators are shown
+
+- Input type: `boolean`
+
+### 29. AutoLinkEnabledInChat
+
+Get the current state of link detection
+
+- Input type: `boolean`
+
+### 30. ShowMetadataInsideBubble
+
+Get whether metadata is shown inside bubble
+
+- Input type: `boolean`
+
+### 31. ImageWidthFixInTextImageMessage
+
+Get whether metadata is shown inside bubble
+
+- Input type: `boolean`
+
+### 32. CustomFontFamily
+
+Get status text for sent messages
+
+- Input type: `text`
+
+## <kbd>Getters:</kbd>
+
+**ChatKaroUI** has total 32 getter properties.
+
+### 1. AvatarSize
+
+Get avatar size in DP
+
+- Return type: `number`
+
+### 2. TextMessageMaxWidth
+
+Get max width for text messages in DP
+
+- Return type: `number`
+
+### 3. ImageMessageMaxWidth
+
+Get max width for image messages in DP
+
+- Return type: `number`
+
+### 4. FullscreenImageBGColor
+
+Get background color for fullscreen image viewer
+
+- Return type: `number`
+
+### 5. AvatarBackgroundColor
+
+Get background color for avatars
+
+- Return type: `number`
+
+### 6. SentMessageTextColor
+
+Get text color for sent messages
+
+- Return type: `number`
+
+### 7. ReceivedMessageTextColor
+
+Get text color for received messages
+
+- Return type: `number`
+
+### 8. SentMessageBackgroundColor
+
+Get background color for sent messages
+
+- Return type: `number`
+
+### 9. ReceivedMessageBackgroundColor
+
+Get background color for received messages
+
+- Return type: `number`
+
+### 10. MessageFontSize
+
+Get font size for messages
+
+- Return type: `number`
+
+### 11. SystemMessageFontSize
+
+Get font size for messages
+
+- Return type: `number`
+
+### 12. SystemMessageTextColor
+
+Get text color for system systemMessages
+
+- Return type: `number`
+
+### 13. SelectedMessageBgColor
+
+Get background color for message selection
+
+- Return type: `number`
+
+### 14. TypingIndicatorTextColor
+
+Get text color for typing indicator
+
+- Return type: `number`
+
+### 15. TimestampFontSize
+
+Get text size for timestamps
+
+- Return type: `number`
+
+### 16. TimestampTextColor
+
+Get text color for timestamps
+
+- Return type: `number`
+
+### 17. SentStatusTextColor
+
+Get text color for sent status
+
+- Return type: `number`
+
+### 18. ReceivedStatusTextColor
+
+Get text color for received status
+
+- Return type: `number`
+
+### 19. SentStatusText
+
+Get status text for sent messages
+
+- Return type: `text`
+
+### 20. ReceivedStatusText
+
+Get status text for received messages
+
+- Return type: `text`
+
+### 21. SentNameTextColor
+
+Get text color for sender names in sent messages
+
+- Return type: `number`
+
+### 22. ReceivedNameTextColor
+
+Get text color for sender names in received messages
+
+- Return type: `number`
+
+### 23. NameFontSize
+
+Get font size for sender names
+
+- Return type: `number`
+
+### 24. MessageCornerRadius
+
+Get corner radius for message bubbles
+
+- Return type: `number`
+
+### 25. MessageHorizontalPadding
+
+Get horizontal padding inside message bubbles
+
+- Return type: `number`
+
+### 26. MessageVerticalPadding
+
+Get vertical padding inside message bubbles
+
+- Return type: `number`
+
+### 27. ShowTimestamp
+
+Get whether timestamps are shown
+
+- Return type: `boolean`
+
+### 28. ShowReadStatus
+
+Get whether read status indicators are shown
+
+- Return type: `boolean`
+
+### 29. AutoLinkEnabledInChat
+
+Get the current state of link detection
+
+- Return type: `boolean`
+
+### 30. ShowMetadataInsideBubble
+
+Get whether metadata is shown inside bubble
+
+- Return type: `boolean`
+
+### 31. ImageWidthFixInTextImageMessage
+
+Get whether metadata is shown inside bubble
+
+- Return type: `boolean`
+
+### 32. CustomFontFamily
+
+Get status text for sent messages
+
+- Return type: `text`

@@ -1,0 +1,10 @@
+/.fast
+/.idea
+/.vscode
+.classpath
+.project
+out/blocks/androidbuilder/
+#out/blocks/appinventor/
+out/blocks/kodular/
+out/blocks/niotron/
+#out
