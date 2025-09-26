@@ -3,6 +3,7 @@ package com.prem.chatkaroui;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.*;
+import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
@@ -19,15 +20,13 @@ import android.util.TypedValue;
 import android.view.*;
 import android.widget.*;
 
+import android.widget.LinearLayout;
 import com.google.appinventor.components.annotations.*;
 import com.google.appinventor.components.common.PropertyTypeConstants;
-import com.google.appinventor.components.runtime.AndroidNonvisibleComponent;
-import com.google.appinventor.components.runtime.Component;
-import com.google.appinventor.components.runtime.ComponentContainer;
-import com.google.appinventor.components.runtime.EventDispatcher;
-import com.google.appinventor.components.runtime.VerticalArrangement;
+import com.google.appinventor.components.runtime.*;
 
 import java.io.*;
+import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -44,11 +43,11 @@ import static android.graphics.Color.parseColor;
 
 @DesignerComponent(
         version = 1,
-        versionName = "1.0",
+        versionName = "1.1",
         description = "ChatKaroUI is a customizable chat component with text, images and messages support. <br>" +
                 "Made by: Arun Gupta <br>" +
-                "<span><a href=\"https://community.appinventor.mit.edu/\" target=\"_blank\"><small><mark>Mit AI2 Community</mark></small></a></span> | " +
-                "<span><a href=\"https://community.kodular.io/\" target=\"_blank\"><small><mark>Kodular Community</mark></small></a></span>",
+                "<span><a href=\"https://community.appinventor.mit.edu/t/154865\" target=\"_blank\"><small><mark>Mit AI2 Community</mark></small></a></span> | " +
+                "<span><a href=\"https://community.kodular.io/t/301309\" target=\"_blank\"><small><mark>Kodular Community</mark></small></a></span>",
         nonVisible = true,
         iconName = "icon.png",
         helpUrl = "https://www.telegram.me/Arungupta1526")
@@ -62,7 +61,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
     // Configuration properties with default values
     private String sentStatusText = "✓✓"; // Default: double check "&#x2714;&#x270C;"
     private String receivedStatusText = "🚀"; // Default: rocket "&#x1F680;"
-//    private String fontFamily = "sans-serif";
+    //    private String fontFamily = "sans-serif";
     private String customFontFamily = "";
     private int timestampTextColor = Color.GRAY;
     private int sentStatusTextColor = Color.BLUE;
@@ -115,6 +114,8 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
 
     private boolean textFunctionWidthFix = false;
     private boolean imageFunctionWidthFix = true;
+    private AndroidViewComponent verticalArrangement;
+    private int testWidth = 0;
 
     /**
      * Constructor for ChatKaroUI component
@@ -135,6 +136,8 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
             "This must be called before adding any messages.")
     public void Initialize(VerticalArrangement arrangement) {
         try {
+            verticalArrangement = arrangement; // ✅ Store for later use
+
             // Create main chat container
             chatContainer = new LinearLayout(context);
             chatContainer.setOrientation(LinearLayout.VERTICAL);
@@ -798,7 +801,8 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
         messageBox.setGravity(isSent ? Gravity.END : Gravity.START);
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, // width
+//                ViewGroup.LayoutParams.MATCH_PARENT, // width // try 02/08/25 for date/time proper show
+                ViewGroup.LayoutParams.WRAP_CONTENT, // width // original
                 ViewGroup.LayoutParams.WRAP_CONTENT // height
         );
         // params.setMargins(8, 0, 8, 0);
@@ -964,10 +968,26 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
         }
 
         // Calculate max width
-        int screenWidthPx = context.getResources().getDisplayMetrics().widthPixels;
-        int defaultMaxPx = (int) (screenWidthPx * 0.8f);
+//        int screenWidthPx = context.getResources().getDisplayMetrics().widthPixels;
+//        int defaultMaxPx = (int) (screenWidthPx * 0.8f);
+
+
+        // add on 03/09/25
+
+        // ✅ Use VerticalArrangement width instead of screen width
+        int arrangementWidthPx = 0;
+        if (verticalArrangement != null && verticalArrangement.getView().getWidth() > 0) {
+            arrangementWidthPx = verticalArrangement.getView().getWidth();
+        } else {
+            // Fallback if width is not yet measured
+            arrangementWidthPx = context.getResources().getDisplayMetrics().widthPixels;
+        }
+
+        int defaultMaxPx = (int) (arrangementWidthPx * 0.8f); // Already in px
+
 
         int finalMaxPx;
+//        testWidth = defaultMaxPx;
 
         if (useResponsiveWidth) {
             if (imageWidthIsFix) {
@@ -1029,6 +1049,46 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
         return messageView;
     }
 
+//    @SimpleFunction(description = "Returns the Android API version of the device.")
+//    public int GetApiVersion() {
+//        return Build.VERSION.SDK_INT;
+//    }
+
+    @SimpleFunction(description = "Returns the Android API version of the device.")
+    public int ArrangementWidthPx() {
+//         Build.VERSION.SDK_INT;
+        // ✅ Use VerticalArrangement width instead of screen width
+//        int arrangementWidthPx = 0;
+////        int arrangementWidthPx;
+//        if (verticalArrangement != null && verticalArrangement.getView().getWidth() > 0) {
+//            arrangementWidthPx = verticalArrangement.getView().getWidth();
+//        } else {
+//            // Fallback if width is not yet measured
+//            arrangementWidthPx = context.getResources().getDisplayMetrics().widthPixels;
+//        }
+//        return arrangementWidthPx;
+
+
+//        int arrangementWidthPx = 0;
+//        int arrangementWidthPx;
+        if (verticalArrangement != null && verticalArrangement.getView().getWidth() > 0) {
+            return verticalArrangement.getView().getWidth();
+        } else {
+            // Fallback if width is not yet measured
+            return context.getResources().getDisplayMetrics().widthPixels;
+        }
+    }
+
+    @SimpleFunction(description = "Returns the Android API version of the device.")
+    public int ScreenWidthPx() {
+//         Build.VERSION.SDK_INT;
+        // ✅ Use screen width
+//        int screenWidthPx = context.getResources().getDisplayMetrics().widthPixels;
+//        return screenWidthPx;
+        return context.getResources().getDisplayMetrics().widthPixels;
+
+    }
+
     /**
      * Creates a bubble drawable for messages
      *
@@ -1053,8 +1113,10 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
         LinearLayout metaLayout = new LinearLayout(context);
         metaLayout.setOrientation(LinearLayout.HORIZONTAL);
         metaLayout.setLayoutParams(new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
+//                ViewGroup.LayoutParams.MATCH_PARENT, // 03/09 original
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
         metaLayout.setGravity(isSent ? Gravity.END : Gravity.START);
 
         if (showTimestamp) {
@@ -1936,7 +1998,9 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
             // imageMessageMaxWidth = useResponsiveWidthSize;
         } else {
             useResponsiveWidth = false;
-            useResponsiveWidthForText = true;
+            useResponsiveWidthForText = false; // 03/09
+            float density = context.getResources().getDisplayMetrics().density;
+            textMessageMaxWidth = (int) ((ArrangementWidthPx() * 0.8f) / density);
         }
     }
 

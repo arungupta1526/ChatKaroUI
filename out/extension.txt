@@ -1,16 +1,16 @@
 <div align="center">
 <h1><kbd>🧩 ChatKaroUI</kbd></h1>
 An extension for MIT App Inventor 2.<br>
-ChatKaroUI is a customizable chat component with text, images and messages support. <br>Made by: Arun Gupta <br><span><a href="https://github.com/arungupta1526/ChatKaroUI" target="_blank"><small><mark>Github</mark></small></a></span> | <span><a href="https://community.appinventor.mit.edu/t/154323" target="_blank"><small><mark>Mit AI2 Community</mark></small></a></span> | <span><a href="https://community.kodular.io/t/300697" target="_blank"><small><mark>Kodular Community</mark></small></a></span>
+ChatKaroUI is a customizable chat component with text, images and messages support. <br>Made by: Arun Gupta <br><span><a href="https://community.appinventor.mit.edu/t/154865" target="_blank"><small><mark>Mit AI2 Community</mark></small></a></span> | <span><a href="https://community.kodular.io/t/301309" target="_blank"><small><mark>Kodular Community</mark></small></a></span>
 </div>
 
 ## 📝 Specifications
 * **
 📦 **Package:** com.prem.chatkaroui
-💾 **Size:** 41.96 KB
-⚙️ **Version:** 1.0
+💾 **Size:** 42.39 KB
+⚙️ **Version:** 1.1
 📱 **Minimum API Level:** 14
-📅 **Updated On:** [date=2025-09-02 timezone="Asia/Calcutta"]
+📅 **Updated On:** [date=2025-09-03 timezone="Asia/Calcutta"]
 🔗 **Help URL:** [Learn more](https://www.telegram.me/Arungupta1526)
 💻 **Built & documented using:** [FAST](https://community.appinventor.mit.edu/t/fast-an-efficient-way-to-build-publish-extensions/129103?u=jewel) <small><mark>v4.4.0</mark></small>
 
@@ -79,7 +79,7 @@ Fires when copying to clipboard fails
 | error | text
 
 ## <kbd>Methods:</kbd>
-**ChatKaroUI** has total 25 methods.
+**ChatKaroUI** has total 27 methods.
 
 ### 1. Initialize
 Initialize the chat UI in a VerticalArrangement. This must be called before adding any messages.
@@ -163,55 +163,65 @@ Downloads an image from the URL, saves it to chat-images folder under ASD as PNG
 | imageUrl | text
 | format | text
 
-### 10. ResetTextMessageMaxWidth
+### 10. ArrangementWidthPx
+Returns the Android API version of the device.
+
+* Return type: `number`
+
+### 11. ScreenWidthPx
+Returns the Android API version of the device.
+
+* Return type: `number`
+
+### 12. ResetTextMessageMaxWidth
 Reset max width to 80% of screen width
 
-### 11. ShowTypingIndicator
+### 13. ShowTypingIndicator
 Show typing indicator
 
-### 12. HideTypingIndicator
+### 14. HideTypingIndicator
 Hide typing indicator
 
-### 13. DeleteMessage
+### 15. DeleteMessage
 Delete message by position (1-based index)
 
 | Parameter | Type
 | - | - |
 | index | number
 
-### 14. ClearAllMessages
+### 16. ClearAllMessages
 Clear all messages
 
-### 15. GetMessageCount
+### 17. GetMessageCount
 Get total message count
 
 * Return type: `number`
 
-### 16. ClearSelection
+### 18. ClearSelection
 Clear message selections
 
-### 17. GetSelectedCount
+### 19. GetSelectedCount
 Get number of selected messages
 
 * Return type: `number`
 
-### 18. DeleteSelectedMessages
+### 20. DeleteSelectedMessages
 Delete selected messages
 
-### 19. AddImageMenuItem
+### 21. AddImageMenuItem
 Add custom item to image menu
 
 | Parameter | Type
 | - | - |
 | itemText | text
 
-### 20. ClearImageMenuItems
+### 22. ClearImageMenuItems
 Clear custom image menu items
 
-### 21. ResetDateTracking
+### 23. ResetDateTracking
 Reset date tracking for new conversations
 
-### 22. GetYouTubeThumbnail
+### 24. GetYouTubeThumbnail
 Get YouTube thumbnail URL from a full URL or video ID.
 
 * Return type: `text`
@@ -220,17 +230,17 @@ Get YouTube thumbnail URL from a full URL or video ID.
 | - | - |
 | youTubeURL | text
 
-### 23. GetCurrentTime
+### 25. GetCurrentTime
 Get current timestamp formatted as hh:mm a
 
 * Return type: `text`
 
-### 24. GetCurrentDate
+### 26. GetCurrentDate
 Get current date formatted as yyyy-MM-dd
 
 * Return type: `text`
 
-### 25. CopyToClipboard
+### 27. CopyToClipboard
 Copy text to clipboard
 
 | Parameter | Type
