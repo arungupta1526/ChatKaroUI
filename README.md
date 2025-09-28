@@ -14,12 +14,13 @@ ChatKaroUI is a `customizable advance chat component extension` with text, image
 🔎 **Use Place:** An extension for _`MIT App Inventor 2, Kodular, Niotron, Android Builder.`_ <br>
 👤 **Author:** Created by: [Prem_Gupta](https://community.appinventor.mit.edu/u/prem_gupta/summary) <br>
 📦 **Package:** com.prem.chatkaroui <br>
-💾 **Size:** 41.96 KB <br>
-⚙️ **Version:** 1.0 <br>
+💾 **Size:** 49.05 KB <br>
+⚙️ **Version:** 2.0 <br>
 📱 **Minimum API Level:** 14 <br>
-📅 **Updated On:** [date=2025-09-02 timezone="Asia/Calcutta"] <br>
+📅 **Built On:** [date=2025-09-02 timezone="Asia/Calcutta"] <br>
+📅 **Updated On:** [date=2025-09-29 timezone="Asia/Calcutta"] <br>
 🔗 **Help URL:** [Telegram](https://www.telegram.me/Arungupta1526) <br>
-💻 **Built & documented using:** [FAST](https://community.appinventor.mit.edu/t/fast-an-efficient-way-to-build-publish-extensions/129103?u=jewel) <small><mark>v4.4.0</mark></small> <br>
+💻 **Built & documented using:** [FAST](https://community.appinventor.mit.edu/t/fast-an-efficient-way-to-build-publish-extensions/129103?u=jewel) <small><mark>v5.1.0</mark></small> <br>
 ⬇️ **Aix:** [Download Link](./out/com.prem.chatkaroui.aix) <br>
 
 ---
@@ -32,18 +33,9 @@ ChatKaroUI is a `customizable advance chat component extension` with text, image
 
 ## <kbd>Events:</kbd>
 
-**ChatKaroUI** has total 8 events.
+**ChatKaroUI** has total 14 events.
 
-### 1. ImageMenuItemClicked
-
-Triggered when image menu item is clicked
-
-| Parameter | Type |
-| --------- | ---- |
-| itemText  | text |
-| imageUrl  | text |
-
-### 2. ImageAlreadyExists
+### 1. ImageAlreadyExists
 
 Called when the image already exists and was not re-saved.
 
@@ -52,7 +44,7 @@ Called when the image already exists and was not re-saved.
 | absolutePath | text |
 | fileName     | text |
 
-### 3. ImageSaved
+### 2. ImageSaved
 
 Called when an image is saved successfully. Returns absolute path and file name.
 
@@ -61,7 +53,7 @@ Called when an image is saved successfully. Returns absolute path and file name.
 | absolutePath | text |
 | fileName     | text |
 
-### 4. ImageSaveFailed
+### 3. ImageSaveFailed
 
 Called when saving an image fails. Returns the error message.
 
@@ -69,7 +61,7 @@ Called when saving an image fails. Returns the error message.
 | ------------ | ---- |
 | errorMessage | text |
 
-### 5. ProfilePictureClicked
+### 4. ProfilePictureClicked
 
 Triggered when profile picture is clicked
 
@@ -78,16 +70,53 @@ Triggered when profile picture is clicked
 | name      | text |
 | avatarUrl | text |
 
-### 6. MessageSelected
+### 5. MessageSelected
 
-Triggered when message is selected
+Triggered when a message is selected
 
 | Parameter | Type   |
 | --------- | ------ |
 | message   | text   |
-| index     | number |
+| messageId | number |
 
-### 7. ClipboardCopySuccess
+### 6. MessageUpdated
+
+Triggered when a message is updated
+
+| Parameter  | Type   |
+| ---------- | ------ |
+| messageId  | number |
+| newMessage | text   |
+
+### 7. MessageScrolledTo
+
+Triggered when scroll to message is completed
+
+| Parameter | Type   |
+| --------- | ------ |
+| messageId | number |
+
+### 8. TextMenuItemClicked
+
+Triggered when text menu item is clicked
+
+| Parameter | Type   |
+| --------- | ------ |
+| itemText  | text   |
+| message   | text   |
+| messageId | number |
+
+### 9. ImageMenuItemClicked
+
+Triggered when image menu item is clicked
+
+| Parameter | Type   |
+| --------- | ------ |
+| itemText  | text   |
+| imageUrl  | text   |
+| messageId | number |
+
+### 10. ClipboardCopySuccess
 
 Fires when text is successfully copied to clipboard
 
@@ -95,7 +124,7 @@ Fires when text is successfully copied to clipboard
 | ---------- | ---- |
 | copiedText | text |
 
-### 8. ClipboardCopyFailed
+### 11. ClipboardCopyFailed
 
 Fires when copying to clipboard fails
 
@@ -103,9 +132,29 @@ Fires when copying to clipboard fails
 | --------- | ---- |
 | error     | text |
 
+### 12. SelectionCleared
+
+Triggered when selection is cleared
+
+### 13. TextMenuItemsAdded
+
+Triggered when text menu items are added
+
+| Parameter | Type   |
+| --------- | ------ |
+| count     | number |
+
+### 14. ImageMenuItemsAdded
+
+Triggered when image menu items are added
+
+| Parameter | Type   |
+| --------- | ------ |
+| count     | number |
+
 ## <kbd>Methods:</kbd>
 
-**ChatKaroUI** has total 25 methods.
+**ChatKaroUI** has total 43 methods.
 
 ### 1. Initialize
 
@@ -198,67 +247,132 @@ Downloads an image from the URL, saves it to chat-images folder under ASD as PNG
 | imageUrl  | text |
 | format    | text |
 
-### 10. ResetTextMessageMaxWidth
+### 10. ArrangementWidthPx
+
+Returns the Android API version of the device.
+
+- Return type: `number`
+
+### 11. ScreenWidthPx
+
+Returns the Android API version of the device.
+
+- Return type: `number`
+
+### 12. ResetTextMessageMaxWidth
 
 Reset max width to 80% of screen width
 
-### 11. ShowTypingIndicator
+### 13. ShowTypingIndicator
 
 Show typing indicator
 
-### 12. HideTypingIndicator
+### 14. HideTypingIndicator
 
 Hide typing indicator
 
-### 13. DeleteMessage
+### 15. DeleteMessageById
 
-Delete message by position (1-based index)
+Delete message by ID
 
 | Parameter | Type   |
 | --------- | ------ |
-| index     | number |
+| messageId | number |
 
-### 14. ClearAllMessages
+### 16. UpdateMessageById
+
+Update an existing message by ID
+
+| Parameter  | Type   |
+| ---------- | ------ |
+| messageId  | number |
+| newMessage | text   |
+
+### 17. GetMessageTextById
+
+Get message text by ID
+
+- Return type: `text`
+
+| Parameter | Type   |
+| --------- | ------ |
+| messageId | number |
+
+### 18. GotoMessageById
+
+Scroll to a specific message by ID
+
+| Parameter | Type   |
+| --------- | ------ |
+| messageId | number |
+
+### 19. MessageExists
+
+Check if a message ID exists
+
+- Return type: `boolean`
+
+| Parameter | Type   |
+| --------- | ------ |
+| messageId | number |
+
+### 20. GetAllMessageIds
+
+Get all message IDs (including inactive ones)
+
+- Return type: `list`
+
+### 21. IsMessageSent
+
+Get whether a message was sent (true) or received (false) by ID
+
+- Return type: `boolean`
+
+| Parameter | Type   |
+| --------- | ------ |
+| messageId | number |
+
+### 22. CleanupIdTracking
+
+Clean up internal ID tracking (useful after clearing chat)
+
+### 23. ClearAllMessages
 
 Clear all messages
 
-### 15. GetMessageCount
+### 24. GetMessageCount
 
 Get total message count
 
 - Return type: `number`
 
-### 16. ClearSelection
+### 25. ClearSelection
 
 Clear message selections
 
-### 17. GetSelectedCount
+### 26. GetSelectedCount
 
 Get number of selected messages
 
 - Return type: `number`
 
-### 18. DeleteSelectedMessages
+### 27. DeleteSelectedMessages
 
 Delete selected messages
 
-### 19. AddImageMenuItem
-
-Add custom item to image menu
-
-| Parameter | Type |
-| --------- | ---- |
-| itemText  | text |
-
-### 20. ClearImageMenuItems
+### 28. ClearImageMenuItems
 
 Clear custom image menu items
 
-### 21. ResetDateTracking
+### 29. ClearTextMenuItems
+
+Clear custom text menu items
+
+### 30. ResetDateTracking
 
 Reset date tracking for new conversations
 
-### 22. GetYouTubeThumbnail
+### 31. GetYouTubeThumbnail
 
 Get YouTube thumbnail URL from a full URL or video ID.
 
@@ -268,19 +382,19 @@ Get YouTube thumbnail URL from a full URL or video ID.
 | ---------- | ---- |
 | youTubeURL | text |
 
-### 23. GetCurrentTime
+### 32. GetCurrentTime
 
 Get current timestamp formatted as hh:mm a
 
 - Return type: `text`
 
-### 24. GetCurrentDate
+### 33. GetCurrentDate
 
 Get current date formatted as yyyy-MM-dd
 
 - Return type: `text`
 
-### 25. CopyToClipboard
+### 34. CopyToClipboard
 
 Copy text to clipboard
 
@@ -288,9 +402,67 @@ Copy text to clipboard
 | --------- | ---- |
 | text      | text |
 
+### 35. IsMultiSelectionActive
+
+Check if multi-selection mode is active
+
+- Return type: `boolean`
+
+### 36. AddTextMenuItems
+
+Add multiple text menu items from YailList to existing ones
+
+| Parameter | Type |
+| --------- | ---- |
+| menuItems | list |
+
+### 37. AddImageMenuItems
+
+Add multiple image menu items from YailList to existing ones
+
+| Parameter | Type |
+| --------- | ---- |
+| menuItems | list |
+
+### 38. GetTextMenuItemsCount
+
+Get count of text menu items
+
+- Return type: `number`
+
+### 39. GetImageMenuItemsCount
+
+Get count of image menu items
+
+- Return type: `number`
+
+### 40. GetTextMenuItems
+
+Get current text menu items as YailList
+
+- Return type: `list`
+
+### 41. GetImageMenuItems
+
+Get current image menu items as YailList
+
+- Return type: `list`
+
+### 42. GetFirstMessageId
+
+Get the first (oldest) active message ID in the chat. Returns 0 if no messages.
+
+- Return type: `number`
+
+### 43. GetLastMessageId
+
+Get the last (newest) active message ID in the chat. Returns 0 if no messages.
+
+- Return type: `number`
+
 ## <kbd>Designer:</kbd>
 
-**ChatKaroUI** has total 32 designer properties.
+**ChatKaroUI** has total 35 designer properties.
 
 ### 1. AvatarSize
 
@@ -310,32 +482,32 @@ Copy text to clipboard
 ### 4. FullscreenImageBGColor
 
 - Input type: `color`
-- Default value: `&HFF0C0C0C`
+- Default value: `0C0C0C`
 
 ### 5. AvatarBackgroundColor
 
 - Input type: `color`
-- Default value: `&HFFDDDDDD`
+- Default value: `DDDDDD`
 
 ### 6. SentMessageTextColor
 
 - Input type: `color`
-- Default value: `&HFFFFFFFF`
+- Default value: `FFFFFF`
 
 ### 7. ReceivedMessageTextColor
 
 - Input type: `color`
-- Default value: `&HFF000000`
+- Default value: `000000`
 
 ### 8. SentMessageBackgroundColor
 
 - Input type: `color`
-- Default value: `&HFF0084FF`
+- Default value: `0084FF`
 
 ### 9. ReceivedMessageBackgroundColor
 
 - Input type: `color`
-- Default value: `&HFFF0F0F0`
+- Default value: `F0F0F0`
 
 ### 10. MessageFontSize
 
@@ -350,17 +522,17 @@ Copy text to clipboard
 ### 12. SystemMessageTextColor
 
 - Input type: `color`
-- Default value: `&HFF888888`
+- Default value: `888888`
 
 ### 13. SelectedMessageBgColor
 
 - Input type: `color`
-- Default value: `&H8CF9D3FF`
+- Default value: `F9D3FF`
 
 ### 14. TypingIndicatorTextColor
 
 - Input type: `color`
-- Default value: `&HFF888888`
+- Default value: `888888`
 
 ### 15. TimestampFontSize
 
@@ -370,37 +542,37 @@ Copy text to clipboard
 ### 16. TimestampTextColor
 
 - Input type: `color`
-- Default value: `&HFF888888`
+- Default value: `888888`
 
 ### 17. SentStatusTextColor
 
 - Input type: `color`
-- Default value: `&HFF0000FF`
+- Default value: `0000FF`
 
 ### 18. ReceivedStatusTextColor
 
 - Input type: `color`
-- Default value: `&HFFFF00FF`
+- Default value: `FF00FF`
 
 ### 19. SentStatusText
 
 - Input type: `string`
-- Default value: `✓✓`
+- Default value: `??`
 
 ### 20. ReceivedStatusText
 
 - Input type: `string`
-- Default value: `🚀`
+- Default value: `?`
 
 ### 21. SentNameTextColor
 
 - Input type: `color`
-- Default value: `&HFF000000`
+- Default value: `000000`
 
 ### 22. ReceivedNameTextColor
 
 - Input type: `color`
-- Default value: `&HFF000000`
+- Default value: `000000`
 
 ### 23. NameFontSize
 
@@ -451,9 +623,24 @@ Copy text to clipboard
 
 - Input type: `asset`
 
+### 33. TypingIndicatorText
+
+- Input type: `string`
+- Default value: `Typing`
+
+### 34. SquareBubbleEdge
+
+- Input type: `boolean`
+- Default value: `False`
+
+### 35. SquareEdgeCornerRadius
+
+- Input type: `float`
+- Default value: `8.0`
+
 ## <kbd>Setters:</kbd>
 
-**ChatKaroUI** has total 32 setter properties.
+**ChatKaroUI** has total 35 setter properties.
 
 ### 1. AvatarSize
 
@@ -646,10 +833,28 @@ Get whether metadata is shown inside bubble
 Get status text for sent messages
 
 - Input type: `text`
+
+### 33. TypingIndicatorText
+
+Get typingIndicator Text messages
+
+- Input type: `text`
+
+### 34. SquareBubbleEdge
+
+Get whether square bubble edges are enabled
+
+- Input type: `boolean`
+
+### 35. SquareEdgeCornerRadius
+
+Get square edge corner radius
+
+- Input type: `number`
 
 ## <kbd>Getters:</kbd>
 
-**ChatKaroUI** has total 32 getter properties.
+**ChatKaroUI** has total 35 getter properties.
 
 ### 1. AvatarSize
 
@@ -842,3 +1047,21 @@ Get whether metadata is shown inside bubble
 Get status text for sent messages
 
 - Return type: `text`
+
+### 33. TypingIndicatorText
+
+Get typingIndicator Text messages
+
+- Return type: `text`
+
+### 34. SquareBubbleEdge
+
+Get whether square bubble edges are enabled
+
+- Return type: `boolean`
+
+### 35. SquareEdgeCornerRadius
+
+Get square edge corner radius
+
+- Return type: `number`

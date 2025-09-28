@@ -13,10 +13,7 @@ import android.os.Looper;
 import android.text.Layout;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.util.LruCache;
-import android.util.TypedValue;
+import android.util.*;
 import android.view.*;
 import android.widget.*;
 
@@ -24,6 +21,7 @@ import android.widget.LinearLayout;
 import com.google.appinventor.components.annotations.*;
 import com.google.appinventor.components.common.PropertyTypeConstants;
 import com.google.appinventor.components.runtime.*;
+import com.google.appinventor.components.runtime.util.YailList;
 
 import java.io.*;
 import java.io.File;
@@ -42,8 +40,8 @@ import java.util.regex.Pattern;
 import static android.graphics.Color.parseColor;
 
 @DesignerComponent(
-        version = 1,
-        versionName = "1.1",
+        version = 2,
+        versionName = "2.0",
         description = "ChatKaroUI is a customizable chat component with text, images and messages support. <br>" +
                 "Made by: Arun Gupta <br>" +
                 "<span><a href=\"https://community.appinventor.mit.edu/t/154865\" target=\"_blank\"><small><mark>Mit AI2 Community</mark></small></a></span> | " +
@@ -52,6 +50,16 @@ import static android.graphics.Color.parseColor;
         iconName = "icon.png",
         helpUrl = "https://www.telegram.me/Arungupta1526")
 public class ChatKaroUI extends AndroidNonvisibleComponent implements Component {
+
+    // Add these with other instance variables
+    private int nextMessageId = 1;
+    private final SparseArray<View> messageViewsById = new SparseArray<>();
+    private final SparseArray<String> messageTextsById = new SparseArray<>();
+    private final SparseArray<Boolean> messageSentFlagsById = new SparseArray<>();
+    // Add these properties with other configuration properties
+    private boolean squareBubbleEdge = false;
+    //    private int squareEdgeCornerRadius = 8; // Smaller radius for square-ish look
+    private float squareEdgeCornerRadius = 8f; // Smaller radius for square-ish look
 
     // UI Components
     private LinearLayout chatContainer;
@@ -63,6 +71,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
     private String receivedStatusText = "🚀"; // Default: rocket "&#x1F680;"
     //    private String fontFamily = "sans-serif";
     private String customFontFamily = "";
+    private String typingIndicatorText = "";
     private int timestampTextColor = Color.GRAY;
     private int sentStatusTextColor = Color.BLUE;
     private int receivedStatusTextColor = Color.MAGENTA;
@@ -73,7 +82,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
     private int receivedMessageTextColor = Color.BLACK;
     private int receivedNameTextColor = Color.BLACK;
     // private int toggleMesgSelBgColor = parseColor("#f9d3ff8c");
-    private int selectedMessageBgColor = parseColor("#f9d3ff8c");
+    private int selectedMessageBgColor = parseColor("#add9b5");
     private int typingIndicatorTextColor = Color.GRAY;
     private int systemMessageTextColor = Color.GRAY;
     private int fullscreenImageBGColor = parseColor("#0c0c0c");
@@ -97,7 +106,8 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
     private int useResponsiveWidthSize = 0;
     private boolean useResponsiveWidth = true;
     private boolean useResponsiveWidthForText = true;
-    private final List<String> customMenuItems = new ArrayList<>();
+    private final List<String> customImageMenuItems = new ArrayList<>();
+    private final List<String> customTextMenuItems = new ArrayList<>();
 
     // Handlers and threading
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
@@ -116,6 +126,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
     private boolean imageFunctionWidthFix = true;
     private AndroidViewComponent verticalArrangement;
     private int testWidth = 0;
+    private boolean IsSend = true;
 
     /**
      * Constructor for ChatKaroUI component
@@ -313,13 +324,18 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
     private void addSimpleMessageToUI(String message, boolean isSent, String timestamp) {
         uiHandler.post(() -> {
             try {
+                final int messageId = nextMessageId++;
+
                 LinearLayout messageLayout = createMessageLayout(isSent); // VERTICAL
+                messageLayout.setTag(messageId); // Store ID in tag
+
                 LinearLayout contentLayout = createContentRow(); // HORIZONTAL
-                LinearLayout messageContainer = createMessageContainer(isSent); // VERTICAL
+//                LinearLayout messageContainer = createMessageContainer(isSent); // VERTICAL
+                boolean fixTextWidth = textFunctionWidthFix;
+                LinearLayout messageContainer = createMessageContainer(message, isSent, textMessageMaxWidth, fixTextWidth, messageId); // VERTICAL
 
                 // Create and add message bubble
-                boolean fixTextWidth = textFunctionWidthFix;
-                TextView messageView = createMessageView(message, isSent, textMessageMaxWidth, fixTextWidth);
+                TextView messageView = createMessageView(message, isSent, textMessageMaxWidth, fixTextWidth, messageId);
                 messageContainer.addView(messageView);
 
                 // Add metadata (timestamp, status)
@@ -332,46 +348,26 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
                 messageLayout.addView(contentLayout);
                 chatContainer.addView(messageLayout);
 
-                int index = chatContainer.indexOfChild(messageLayout);
-//                bindSwipeListener(messageContainer, message, index + 1);
-
 //                EnableLinkDetection(autoLinkEnabledInChat);
 
                 // Scroll and animate
                 scrollToBottom();
-                setupLongClickListener(messageLayout, message);
                 animateMessageAppearance(messageLayout);
+//                setupLongClickListener(messageLayout, message);
+
+                // Store message references by ID
+                messageViewsById.put(messageId, messageLayout);
+                messageTextsById.put(messageId, message);
+                messageSentFlagsById.put(messageId, isSent);
+
+                // Update long click listener to use ID
+//                setupLongClickListener(messageLayout, message, messageId, isSent);
 
             } catch (Exception e) {
                 Log.e("ChatUI", "Error adding simple message: " + e.getMessage());
             }
         });
     }
-
-//    private void bindSwipeListener(View targetView, String message, int index) {
-//        targetView.setOnTouchListener(new OnSwipeTouchListener(context) {
-//            @Override
-//            public void onSwipeLeft() {
-//                MessageSwiped(message, index, "left");
-//            }
-//
-//            @Override
-//            public void onSwipeRight() {
-//                MessageSwiped(message, index, "right");
-//            }
-//
-//            // @Override
-//            // public void onSwipeDown() {
-//            // Optional: fullscreen image dismiss or RTC drop
-//            // }
-//
-//        });
-//    }
-
-//    @SimpleEvent(description = "Triggered when a message is swiped left or right")
-//    public void MessageSwiped(String message, int index, String direction) {
-//        EventDispatcher.dispatchEvent(this, "MessageSwiped", message, index, direction);
-//    }
 
     /**
      * Adds a message with avatar to the UI
@@ -385,7 +381,12 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
     private void addAvatarMessageToUI(String message, String avatarUrl, boolean isSent, String name, String timestamp) {
         uiHandler.post(() -> {
             try {
-                LinearLayout messageLayout = createMessageLayout(isSent); // VERTICAL
+                final int messageId = nextMessageId++;
+
+                LinearLayout messageLayout = createMessageLayout(isSent);
+                messageLayout.setTag(messageId);
+
+//                LinearLayout messageLayout = createMessageLayout(isSent); // VERTICAL
 
                 // Add sender/receiver name if provided
                 if (name != null && !name.isEmpty()) {
@@ -399,11 +400,13 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
                 ImageView avatarView = createAvatarView(name, avatarUrl, isSent);
                 loadImage(avatarView, avatarUrl, avatarSize);
 
-                LinearLayout messageContainer = createMessageContainer(isSent); // VERTICAL
+//                LinearLayout messageContainer = createMessageContainer(isSent); // VERTICAL
+                boolean fixTextWidth = textFunctionWidthFix;
+                LinearLayout messageContainer = createMessageContainer(message, isSent, textMessageMaxWidth, fixTextWidth, messageId); // VERTICAL
+
 
                 // Create message bubble
-                boolean fixTextWidth = textFunctionWidthFix;
-                TextView messageView = createMessageView(message, isSent, textMessageMaxWidth, fixTextWidth);
+                TextView messageView = createMessageView(message, isSent, textMessageMaxWidth, fixTextWidth, messageId);
                 messageContainer.addView(messageView);
 
                 // Add timestamp and delivery info
@@ -428,8 +431,16 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
 
                 // Finalize
                 scrollToBottom();
-                setupLongClickListener(messageLayout, message);
                 animateMessageAppearance(messageLayout);
+//                setupLongClickListener(messageLayout, message);
+
+                // Store references
+                messageViewsById.put(messageId, messageLayout);
+                messageTextsById.put(messageId, message);
+                messageSentFlagsById.put(messageId, isSent);
+
+//                setupLongClickListener(messageLayout, message, messageId, isSent);
+
             } catch (Exception e) {
                 Log.e("ChatUI", "Error adding message: " + e.getMessage());
             }
@@ -453,7 +464,12 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
                                          boolean messageOnTop) {
         uiHandler.post(() -> {
             try {
-                LinearLayout messageLayout = createMessageLayout(isSent); // VERTICAL
+                final int messageId = nextMessageId++;
+
+                LinearLayout messageLayout = createMessageLayout(isSent);
+                messageLayout.setTag(messageId);
+
+//                LinearLayout messageLayout = createMessageLayout(isSent); // VERTICAL
 
                 // Add sender name
                 if (name != null && !name.isEmpty()) {
@@ -467,8 +483,11 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
                 ImageView avatarView = createAvatarView(name, avatarUrl, isSent);
                 loadImage(avatarView, avatarUrl, avatarSize);
 
-                LinearLayout messageContainer = createMessageContainer(isSent); // VERTICAL
-                LinearLayout bubbleWrapper = createMessageContainer(isSent);
+                boolean fixImageWidth = imageFunctionWidthFix;
+
+//                LinearLayout messageContainer = createMessageContainer(isSent); // VERTICAL
+//                LinearLayout bubbleWrapper = createMessageContainer(isSent);
+                LinearLayout bubbleWrapper = createMessageContainer(message, isSent, textMessageMaxWidth, fixImageWidth, messageId); // VERTICAL
 
                 // Create text/image container
                 LinearLayout contentContainer = new LinearLayout(context);
@@ -479,19 +498,19 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
                         ViewGroup.LayoutParams.WRAP_CONTENT));
 
                 // Add content based on order preference
-                boolean fixImageWidth = imageFunctionWidthFix;
+//                boolean fixImageWidth = imageFunctionWidthFix;
                 if (messageOnTop) {
                     if (!message.isEmpty())
                         contentContainer
-                                .addView(createMessageView(message, isSent, imageMessageMaxWidth, fixImageWidth));
+                                .addView(createMessageView(message, isSent, imageMessageMaxWidth, fixImageWidth, messageId));
                     if (!imageUrl.isEmpty())
-                        contentContainer.addView(createMessageImageView(imageUrl));
+                        contentContainer.addView(createMessageImageView(imageUrl, messageId));
                 } else {
                     if (!imageUrl.isEmpty())
-                        contentContainer.addView(createMessageImageView(imageUrl));
+                        contentContainer.addView(createMessageImageView(imageUrl, messageId));
                     if (!message.isEmpty())
                         contentContainer
-                                .addView(createMessageView(message, isSent, imageMessageMaxWidth, fixImageWidth));
+                                .addView(createMessageView(message, isSent, imageMessageMaxWidth, fixImageWidth, messageId));
                 }
 
                 bubbleWrapper.addView(contentContainer);
@@ -516,7 +535,14 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
                 chatContainer.addView(messageLayout);
 //                EnableLinkDetection(autoLinkEnabledInChat);
                 scrollToBottom();
-                setupLongClickListener(messageLayout, message);
+//                setupLongClickListener(messageLayout, message);
+
+                // Store references
+                messageViewsById.put(messageId, messageLayout);
+                messageTextsById.put(messageId, message);
+                messageSentFlagsById.put(messageId, isSent);
+
+//                setupLongClickListener(messageLayout, message, messageId, isSent);
 
             } catch (Exception e) {
                 Log.e("ChatUI", "Error adding image message: " + e.getMessage());
@@ -530,7 +556,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
      * @param imageUrl URL or path to the image
      * @return Configured ImageView
      */
-    private ImageView createMessageImageView(String imageUrl) {
+    private ImageView createMessageImageView(String imageUrl, final int messageId) {
         ImageView imageView = new ImageView(context);
         // abhi
 
@@ -559,7 +585,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
         // Add interactions
         imageView.setOnClickListener(v -> showFullscreenImage(imageView.getDrawable()));
         imageView.setOnLongClickListener(v -> {
-            showImageOptionsMenu(v, imageUrl, imageView);
+            showImageOptionsMenu(v, imageUrl, imageView, messageId);
             return true;
         });
 
@@ -595,58 +621,6 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
     }
 
     /**
-     * Shows a context menu with options for an image
-     *
-     * @param anchor    The view to anchor the menu to
-     * @param imageUrl  URL or path of the image
-     * @param imageView The ImageView being interacted with
-     */
-    private void showImageOptionsMenu(View anchor, String imageUrl, ImageView imageView) {
-        PopupMenu menu = new PopupMenu(context, anchor);
-
-        // Default items
-        final String reload = "Reload Image";
-        final String save = "Save Image";
-        final String share = "Share Image";
-
-        menu.getMenu().add(reload);
-        menu.getMenu().add(save);
-        menu.getMenu().add(share);
-
-        // Custom items
-        for (String item : customMenuItems) {
-            menu.getMenu().add(item);
-        }
-
-        menu.setOnMenuItemClickListener(item -> {
-            String title = item.getTitle().toString();
-            // ImageMenuItemClicked(title, imageUrl);
-
-            boolean handled = false;
-
-            if (title.equals(reload)) {
-                loadImageWithPlaceholder(imageView, imageUrl, imageMessageMaxWidth);
-                handled = true;
-            }
-
-            ImageMenuItemClicked(title, imageUrl);
-            return handled;
-        });
-        menu.show();
-    }
-
-    /**
-     * Triggered when an image menu item is clicked.
-     *
-     * @param itemText The menu item that was selected
-     * @param imageUrl URL or path of the image related to the selection
-     */
-    @SimpleEvent(description = "Triggered when image menu item is clicked")
-    public void ImageMenuItemClicked(String itemText, String imageUrl) {
-        EventDispatcher.dispatchEvent(this, "ImageMenuItemClicked", itemText, imageUrl);
-    }
-
-    /**
      * Downloads an image from the URL, saves it to shared app folder as PNG or JPG.
      * Fires ImageSaved or ImageSaveFailed events.
      *
@@ -673,16 +647,6 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
                     File sharedDir = new File(externalFilesDir, "chat-images");
                     if (!sharedDir.exists())
                         sharedDir.mkdirs();
-
-                    // only one formate png/jpg
-                    // String fileName = "img_" + System.currentTimeMillis() + ".png";
-                    // String fileName = "img_" + System.currentTimeMillis() + ".jpg";
-                    // File file = new File(sharedDir, fileName);
-                    //
-                    // FileOutputStream stream = new FileOutputStream(file);
-                    // bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                    // bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                    // stream.close();
 
                     // Determine format and extension
                     String extension = format.equalsIgnoreCase("jpg") ? "jpg" : "png";
@@ -795,7 +759,8 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
      * @param isSent True if message is sent by user, false if received
      * @return Configured LinearLayout
      */
-    private LinearLayout createMessageContainer(boolean isSent) {
+//    private LinearLayout createMessageContainer(boolean isSent) {
+    private LinearLayout createMessageContainer(String message, boolean isSent, int maxWidthDp, boolean imageWidthIsFix, final int messageId) {
         LinearLayout messageBox = new LinearLayout(context);
         messageBox.setOrientation(LinearLayout.VERTICAL);
         messageBox.setGravity(isSent ? Gravity.END : Gravity.START);
@@ -814,6 +779,12 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
         }
         messageBox.setLayoutParams(params);
 
+        // Make the entire container clickable
+//        messageBox.setClickable(true);
+//        messageBox.setFocusable(true);
+
+//        setupLongClickListener(messageBox, message, messageId, isSent);
+
         return messageBox;
     }
 
@@ -824,51 +795,9 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
         scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
     }
 
-    /**
-     * Sets up long click listener for message selection
-     *
-     * @param messageLayout The message view
-     * @param message       The message text
-     */
-    private void setupLongClickListener(View messageLayout, final String message) {
-        messageLayout.setOnLongClickListener(v -> {
-            toggleMessageSelection(messageLayout, message);
-            return true;
-        });
-    }
-
-    /**
-     * Toggles message selection state
-     *
-     * @param messageLayout The message view
-     * @param message       The message text
-     */
-    private void toggleMessageSelection(View messageLayout, String message) {
-        int index = chatContainer.indexOfChild(messageLayout);
-        if (index == -1)
-            return;
-
-        if (selectedMessages.contains(messageLayout)) {
-            selectedMessages.remove(messageLayout);
-            messageLayout.setBackgroundColor(Color.TRANSPARENT);
-        } else {
-            GradientDrawable highlight = new GradientDrawable();
-            highlight.setColor(selectedMessageBgColor);
-            highlight.setCornerRadius(messageCornerRadius);
-            messageLayout.setBackground(highlight);
-            selectedMessages.add(messageLayout);
-        }
-        MessageSelected(message, index + 1); // 1-based index
-    }
-
     @SimpleEvent(description = "Triggered when profile picture is clicked")
     public void ProfilePictureClicked(String name, String avatarUrl) {
         EventDispatcher.dispatchEvent(this, "ProfilePictureClicked", name, avatarUrl);
-    }
-
-    @SimpleEvent(description = "Triggered when message is selected")
-    public void MessageSelected(String message, int index) {
-        EventDispatcher.dispatchEvent(this, "MessageSelected", message, index);
     }
 
     /**
@@ -896,6 +825,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
     private TextView createNameView(String name, boolean isSent) {
         TextView nameView = new TextView(context);
         nameView.setText(name);
+        nameView.setTag("name_view");
         nameView.setTextColor(isSent ? sentNameTextColor : receivedNameTextColor);
         nameView.setTypeface(typeface != null ? typeface : Typeface.DEFAULT_BOLD, Typeface.BOLD);
         nameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, nameFontSize);
@@ -950,9 +880,10 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
      * @param maxWidthDp Maximum width in dp
      * @return Configured TextView
      */
-    private TextView createMessageView(String message, boolean isSent, int maxWidthDp, boolean imageWidthIsFix) {
+    private TextView createMessageView(String message, boolean isSent, int maxWidthDp, boolean imageWidthIsFix, final int messageId) {
         TextView messageView = new TextView(context);
         messageView.setText(message);
+        messageView.setTag("message_content");
         messageView.setTextColor(isSent ? sentMessageTextColor : receivedMessageTextColor);
         messageView.setTypeface(typeface != null ? typeface : Typeface.DEFAULT);
         messageView.setTextSize(TypedValue.COMPLEX_UNIT_SP, messageFontSize);
@@ -1046,14 +977,25 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
 //            }
         }
 
+//        messageView.setOnLongClickListener(v -> {
+//            showTextOptionsMenu(v, message, messageId);
+//            return true;
+//        });
+
+        // Make the entire container clickable
+//        messageView.setClickable(true);
+//        messageView.setFocusable(true);
+
+//        IsSend = isSent;
+
+        setupLongClickListener(messageView, message, messageId, isSent);
         return messageView;
     }
 
-//    @SimpleFunction(description = "Returns the Android API version of the device.")
+    //    @SimpleFunction(description = "Returns the Android API version of the device.")
 //    public int GetApiVersion() {
 //        return Build.VERSION.SDK_INT;
 //    }
-
     @SimpleFunction(description = "Returns the Android API version of the device.")
     public int ArrangementWidthPx() {
 //         Build.VERSION.SDK_INT;
@@ -1095,12 +1037,12 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
      * @param isSent True if message is sent by user, false if received
      * @return Configured GradientDrawable
      */
-    private GradientDrawable createBubbleDrawable(boolean isSent) {
-        GradientDrawable shape = new GradientDrawable();
-        shape.setColor(isSent ? sentMessageBackgroundColor : receivedMessageBackgroundColor);
-        shape.setCornerRadius(messageCornerRadius);
-        return shape;
-    }
+//    private GradientDrawable createBubbleDrawable(boolean isSent) {
+//        GradientDrawable shape = new GradientDrawable();
+//        shape.setColor(isSent ? sentMessageBackgroundColor : receivedMessageBackgroundColor);
+//        shape.setCornerRadius(messageCornerRadius);
+//        return shape;
+//    }
 
     /**
      * Creates a layout for message metadata (timestamp, status)
@@ -1139,6 +1081,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
     private TextView createTimeView(String timestamp) {
         TextView timeView = new TextView(context);
         timeView.setText(timestamp.isEmpty() ? getCurrentTime() : timestamp);
+        timeView.setTag("timestamp_view");
         timeView.setTextSize(TypedValue.COMPLEX_UNIT_SP, timestampFontSize);
         timeView.setTextColor(timestampTextColor);
         // timeView.setPadding(8, 2, 8, 2);
@@ -1155,6 +1098,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
     private TextView createStatusView(boolean isSent) {
         TextView statusView = new TextView(context);
         statusView.setText(isSent ? sentStatusText : receivedStatusText);
+        statusView.setTag("status_view");
         statusView.setTextColor(isSent ? sentStatusTextColor : receivedStatusTextColor);
         statusView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         // statusView.setPadding(8, 2, 8, 2);
@@ -1198,7 +1142,8 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
                 if (!showTypingIndicator)
                     return;
 
-                StringBuilder dots = new StringBuilder("Typing");
+//                StringBuilder dots = new StringBuilder("Typing");
+                StringBuilder dots = new StringBuilder(!typingIndicatorText.isEmpty() ? typingIndicatorText : "Typing");
                 for (int i = 0; i < dotCount; i++)
                     dots.append('.');
 
@@ -1221,79 +1166,6 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
             typingIndicatorView = null;
         }
     }
-
-    /**
-     * Loads an image into an ImageView (for avatars)
-     *
-     * @param imageView  The ImageView to load into
-     * @param imageUrl   URL or path of the image
-     * @param avatarSize
-     */
-    // private void loadImage(final ImageView imageView, final String imageUrl, int
-    // avatarSize) {
-    // if (imageUrl == null || imageUrl.isEmpty()) {
-    // imageView.setImageResource(android.R.drawable.ic_menu_report_image);
-    // return;
-    // }
-    //
-    // // Check in-memory cache first
-    // Bitmap cachedBitmap = imageCache.get(imageUrl);
-    // if (cachedBitmap != null) {
-    // imageView.setImageBitmap(cachedBitmap);
-    // return;
-    // }
-    //
-    // imageExecutor.execute(() -> {
-    // try {
-    // Bitmap bitmap = null;
-    //
-    // if (imageUrl.startsWith("http")) {
-    // URL url = new URL(imageUrl);
-    // HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-    // connection.setDoInput(true);
-    // connection.connect();
-    // InputStream input = connection.getInputStream();
-    // bitmap = BitmapFactory.decodeStream(input);
-    // } else {
-    // File imageFile = new File(imageUrl);
-    // if (imageFile.exists()) {
-    // bitmap = BitmapFactory.decodeFile(imageFile.getAbsolutePath());
-    // }
-    // }
-    //
-    //// final Bitmap finalBitmap = bitmap;
-    //// int avatarSizePx = dpToPx(40); // constant size
-    // int avatarSizePx = dpToPx(avatarSize); // constant size
-    //
-    // final Bitmap finalBitmap = (bitmap != null && !bitmap.isRecycled())
-    //// ? getCircularBitmap(bitmap, avatarSizePx)
-    // ? getCircularBitmap(bitmap, avatarSizePx, true) // Enable red border
-    // : null;
-    // uiHandler.post(() -> {
-    // if (finalBitmap != null) {
-    // imageCache.put(imageUrl, finalBitmap);
-    // imageView.setImageBitmap(finalBitmap);
-    //
-    // ViewGroup.LayoutParams params = imageView.getLayoutParams();
-    // params.width = avatarSizePx;
-    // params.height = avatarSizePx;
-    // imageView.setLayoutParams(params);
-    //
-    //
-    //// Bitmap circular = getCircularBitmap(finalBitmap, avatarSizePx);
-    //// imageCache.put(imageUrl, circular); // cache cropped version
-    //// imageView.setImageBitmap(circular);
-    //
-    // } else {
-    // imageView.setImageResource(android.R.drawable.ic_menu_gallery);
-    // }
-    // });
-    // } catch (Exception e) {
-    // uiHandler.post(() ->
-    // imageView.setImageResource(android.R.drawable.ic_menu_report_image));
-    // }
-    // });
-    // }
 
     /**
      * Loads an image into the given ImageView, optionally cropping it as a circular
@@ -1619,17 +1491,149 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
     /**
      * Deletes a specific message by its position in the chat
      *
-     * @param index 1-based index of the message to delete
+     * @param messageId 1-based index of the message to delete
      *              Usage: DeleteMessage(3) - deletes the third message
      */
-    @SimpleFunction(description = "Delete message by position (1-based index)")
-    public void DeleteMessage(int index) {
-        // Check if index is valid (between 1 and total messages)
-        if (index > 0 && index <= chatContainer.getChildCount()) {
-            View message = chatContainer.getChildAt(index - 1); // Get the message view
-            chatContainer.removeViewAt(index - 1); // Remove from UI
-            selectedMessages.remove(message); // Remove from selection list
+    @SimpleFunction(description = "Delete message by ID")
+    public void DeleteMessageById(int messageId) {
+        uiHandler.post(() -> {
+            View messageView = messageViewsById.get(messageId);
+            if (messageView != null && messageView.getParent() != null) {
+                chatContainer.removeView(messageView);
+                messageViewsById.remove(messageId);
+                messageTextsById.remove(messageId);
+                messageSentFlagsById.remove(messageId);
+                selectedMessages.remove(messageView);
+            }
+        });
+    }
+
+    @SimpleFunction(description = "Update an existing message by ID")
+    public void UpdateMessageById(int messageId, String newMessage) {
+        uiHandler.post(() -> {
+            View messageLayout = messageViewsById.get(messageId);
+            if (messageLayout != null) {
+//                TextView messageView = findMessageTextView((ViewGroup) messageLayout);
+                TextView messageView = findMessageContentTextView((ViewGroup) messageLayout);
+                if (messageView != null) {
+                    messageView.setText(newMessage);
+                    messageTextsById.put(messageId, newMessage);
+                    MessageUpdated(messageId, newMessage);
+                }
+            }
+        });
+    }
+
+    // Update the find method to use tags
+    private TextView findMessageContentTextView(ViewGroup parent) {
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
+
+            if (child instanceof TextView) {
+                TextView textView = (TextView) child;
+                if ("message_content".equals(textView.getTag())) {
+                    return textView;
+                }
+            } else if (child instanceof ViewGroup) {
+                TextView result = findMessageContentTextView((ViewGroup) child);
+                if (result != null) return result;
+            }
         }
+        return null;
+    }
+
+    private TextView findMessageTextView(ViewGroup parent) {
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
+            if (child instanceof TextView) {
+                return (TextView) child;
+            } else if (child instanceof ViewGroup) {
+                TextView result = findMessageTextView((ViewGroup) child);
+                if (result != null) return result;
+            }
+        }
+        return null;
+    }
+
+    @SimpleFunction(description = "Get message text by ID")
+    public String GetMessageTextById(int messageId) {
+        String message = messageTextsById.get(messageId);
+        return message != null ? message : "";
+    }
+
+    @SimpleFunction(description = "Scroll to a specific message by ID")
+    public void GotoMessageById(int messageId) {
+        uiHandler.post(() -> {
+            View messageView = messageViewsById.get(messageId);
+            if (messageView != null) {
+                scrollView.smoothScrollTo(0, messageView.getTop());
+                MessageScrolledTo(messageId);
+            }
+        });
+    }
+
+    @SimpleFunction(description = "Check if a message ID exists")
+    public boolean MessageExists(int messageId) {
+        return messageViewsById.get(messageId) != null;
+    }
+
+//    @SimpleFunction(description = "Get all message IDs currently in chat")
+//    public List<Integer> GetAllMessageIds() {
+//        List<Integer> ids = new ArrayList<>();
+//        for (int i = 0; i < messageViewsById.size(); i++) {
+//            ids.add(messageViewsById.keyAt(i));
+//        }
+//        return ids;
+//    }
+
+    @SimpleFunction(description = "Get all message IDs (including inactive ones)")
+    public YailList GetAllMessageIds() {
+        List<Integer> allIds = new ArrayList<>();
+        if (messageViewsById != null) {
+            for (int i = 0; i < messageViewsById.size(); i++) {
+                allIds.add(messageViewsById.keyAt(i));
+            }
+        }
+        return YailList.makeList(allIds);
+    }
+
+    @SimpleFunction(description = "Get whether a message was sent (true) or received (false) by ID")
+    public boolean IsMessageSent(int messageId) {
+        Boolean isSent = messageSentFlagsById.get(messageId);
+        return isSent != null ? isSent : false;
+    }
+
+    @SimpleEvent(description = "Triggered when a message is selected")
+    public void MessageSelected(String message, int messageId) {
+        EventDispatcher.dispatchEvent(this, "MessageSelected", message, messageId);
+    }
+
+    @SimpleEvent(description = "Triggered when a message is updated")
+    public void MessageUpdated(int messageId, String newMessage) {
+        EventDispatcher.dispatchEvent(this, "MessageUpdated", messageId, newMessage);
+    }
+
+    @SimpleEvent(description = "Triggered when scroll to message is completed")
+    public void MessageScrolledTo(int messageId) {
+        EventDispatcher.dispatchEvent(this, "MessageScrolledTo", messageId);
+    }
+
+    @SimpleEvent(description = "Triggered when text menu item is clicked")
+    public void TextMenuItemClicked(String itemText, String message, int messageId) {
+        EventDispatcher.dispatchEvent(this, "TextMenuItemClicked", itemText, message, messageId);
+    }
+
+    @SimpleEvent(description = "Triggered when image menu item is clicked")
+    public void ImageMenuItemClicked(String itemText, String imageUrl, int messageId) {
+        EventDispatcher.dispatchEvent(this, "ImageMenuItemClicked", itemText, imageUrl, messageId);
+    }
+
+    @SimpleFunction(description = "Clean up internal ID tracking (useful after clearing chat)")
+    public void CleanupIdTracking() {
+        messageViewsById.clear();
+        messageTextsById.clear();
+        messageSentFlagsById.clear();
+        nextMessageId = 1; // Reset ID counter
     }
 
     /**
@@ -1663,9 +1667,17 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
     public void ClearSelection() {
         // Reset background color for all selected messages
         for (View view : selectedMessages) {
-            view.setBackgroundColor(Color.TRANSPARENT);
+//            view.setBackgroundColor(Color.TRANSPARENT);
+
+//            boolean isSent = "sent_message".equals(messageLayout.getTag());
+//            view.setBackgroundColor(isSent ? sentMessageBackgroundColor : receivedMessageBackgroundColor);
+//            createBubbleDrawable(isSent);
+
+            GradientDrawable highlights = createWhatsAppBubbleDrawable(IsSend);
+            view.setBackground(highlights);
         }
         selectedMessages.clear(); // Empty the selection list
+        SelectionCleared();
     }
 
     /**
@@ -1695,26 +1707,21 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
     // ====================== IMAGE MENU MANAGEMENT ====================== //
 
     /**
-     * Adds a custom item to the image context menu
-     *
-     * @param itemText The text to display in the menu
-     *                 Usage: AddImageMenuItem("Save to Gallery")
-     */
-    @SimpleFunction(description = "Add custom item to image menu")
-    public void AddImageMenuItem(String itemText) {
-        // Add to list if not already present
-        if (!customMenuItems.contains(itemText)) {
-            customMenuItems.add(itemText);
-        }
-    }
-
-    /**
      * Clears all custom image menu items
      * Usage: Call to reset to default menu items
      */
     @SimpleFunction(description = "Clear custom image menu items")
     public void ClearImageMenuItems() {
-        customMenuItems.clear(); // Empty the custom items list
+        customImageMenuItems.clear(); // Empty the custom items list
+    }
+
+    /**
+     * Clears all custom text menu items
+     * Usage: Call to reset to default menu items
+     */
+    @SimpleFunction(description = "Clear custom text menu items")
+    public void ClearTextMenuItems() {
+        customTextMenuItems.clear(); // Empty the custom items list
     }
 
     // ====================== DATE HEADER FUNCTIONALITY ====================== //
@@ -1779,29 +1786,12 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
      *
      * @param date The date string to display
      */
-    // private void addDateHeader(String date) {
-    // TextView dateHeader = new TextView(context);
-    // dateHeader.setText(formatDateReadable(date)); // Format date nicely
-    // dateHeader.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-    //// dateHeader.setTextColor(Color.GRAY);
-    // dateHeader.setTypeface(null, Typeface.BOLD);
-    //// dateHeader.setPadding(0, 16, 0, 8); // Vertical padding
-    // dateHeader.setPadding(0, dpToPx(16), 0, dpToPx(8)); // Vertical padding in dp
-    //
-    // dateHeader.setTextColor(Color.parseColor("#FF6200EE")); // Purple
-
-    //// dateHeader.setBackgroundResource(R.drawable.date_header_bg); // Custom
-    //// shape
-    // dateHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-    //
-    // chatContainer.addView(dateHeader); // Add to chat UI
-    // }
     private void addDateHeader(String date) {
         TextView dateHeader = new TextView(context);
         dateHeader.setText(formatDateReadable(date));
         dateHeader.setTypeface(null, Typeface.BOLD);
         dateHeader.setPadding(0, dpToPx(16), 0, dpToPx(8));
-        dateHeader.setTextColor(Color.parseColor("#FF6200EE"));
+        dateHeader.setTextColor(Color.parseColor("#FF6200"));
         dateHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         dateHeader.setGravity(Gravity.CENTER); // text inside view
 
@@ -1999,8 +1989,10 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
         } else {
             useResponsiveWidth = false;
             useResponsiveWidthForText = false; // 03/09
-            float density = context.getResources().getDisplayMetrics().density;
-            textMessageMaxWidth = (int) ((ArrangementWidthPx() * 0.8f) / density);
+            if (textMessageMaxWidth == 0) {
+                float density = context.getResources().getDisplayMetrics().density;
+                textMessageMaxWidth = (int) ((ArrangementWidthPx() * 0.8f) / density);
+            }
         }
     }
 
@@ -2337,6 +2329,17 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
         customFontFamily = typefacePath;
     }
 
+    @SimpleProperty(description = "Get typingIndicator Text messages")
+    public String TypingIndicatorText() {
+        return typingIndicatorText;
+    }
+
+    @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_STRING, defaultValue = "Typing")
+    @SimpleProperty(description = "Set typingIndicator Text messages")
+    public void TypingIndicatorText(String text) {
+        typingIndicatorText = text;
+    }
+
     /**
      * Loads the typeface from assets or external path depending on mode
      *
@@ -2404,4 +2407,496 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component 
         return "AppInventor";
     }
 
+    // 2
+    // Add this method to create WhatsApp-style bubbles
+    private GradientDrawable createWhatsAppBubbleDrawable(boolean isSent) {
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(isSent ? sentMessageBackgroundColor : receivedMessageBackgroundColor);
+
+        if (squareBubbleEdge) {
+            // WhatsApp-style: smaller radius with one flat edge
+            float[] radii = new float[8];
+            if (isSent) {
+                // Sent message: rounded top-left, bottom-left, bottom-right; flat top-right
+                radii[0] = messageCornerRadius;  // top-left
+                radii[1] = messageCornerRadius;
+                radii[2] = squareEdgeCornerRadius;  // top-right (smaller)
+                radii[3] = squareEdgeCornerRadius;
+                radii[4] = messageCornerRadius;  // bottom-right
+                radii[5] = messageCornerRadius;
+                radii[6] = messageCornerRadius;  // bottom-left
+                radii[7] = messageCornerRadius;
+            } else {
+                // Received message: rounded top-right, bottom-left, bottom-right; flat top-left
+                radii[0] = squareEdgeCornerRadius;  // top-left (smaller)
+                radii[1] = squareEdgeCornerRadius;
+                radii[2] = messageCornerRadius;  // top-right
+                radii[3] = messageCornerRadius;
+                radii[4] = messageCornerRadius;  // bottom-right
+                radii[5] = messageCornerRadius;
+                radii[6] = messageCornerRadius;  // bottom-left
+                radii[7] = messageCornerRadius;
+            }
+            shape.setCornerRadii(radii);
+        } else {
+            // Regular rounded bubbles
+            shape.setCornerRadius(messageCornerRadius);
+        }
+
+        return shape;
+    }
+
+    // Update the createBubbleDrawable method to use the new style
+    private GradientDrawable createBubbleDrawable(boolean isSent) {
+        if (squareBubbleEdge) {
+            return createWhatsAppBubbleDrawable(isSent);
+        }
+
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(isSent ? sentMessageBackgroundColor : receivedMessageBackgroundColor);
+        shape.setCornerRadius(messageCornerRadius);
+        return shape;
+
+//        return null;
+    }
+
+    // Properties for square bubble edge
+    @SimpleProperty(description = "Get whether square bubble edges are enabled")
+    public boolean SquareBubbleEdge() {
+        return squareBubbleEdge;
+    }
+
+    @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN, defaultValue = "False")
+    @SimpleProperty(description = "Enable WhatsApp-style square bubble edges")
+    public void SquareBubbleEdge(boolean enabled) {
+        squareBubbleEdge = enabled;
+    }
+
+//    @SimpleProperty(description = "Get square edge corner radius")
+//    public int SquareEdgeCornerRadius() {
+//        return squareEdgeCornerRadius;
+//    }
+
+    @SimpleProperty(description = "Get square edge corner radius")
+    public float SquareEdgeCornerRadius() {
+        return squareEdgeCornerRadius;
+    }
+
+//    @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_NON_NEGATIVE_INTEGER, defaultValue = "8")
+//    @SimpleProperty(description = "Corner radius for square edge bubbles")
+//    public void SquareEdgeCornerRadius(int radius) {
+//        squareEdgeCornerRadius = radius;
+//    }
+
+    @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_FLOAT, defaultValue = "8.0")
+    @SimpleProperty(description = "Corner radius for square edge bubbles")
+    public void SquareEdgeCornerRadius(float radius) {
+        squareEdgeCornerRadius = radius;
+    }
+
+    /**
+     * Toggles message selection state
+     *
+     * @param messageLayout The message view
+     * @param message       The message text
+     */
+    private void toggleMessageSelection(View messageLayout, String message, final int messageId, boolean isSent) {
+//        int index = chatContainer.indexOfChild(messageLayout);
+//        if (index == -1)
+//            return;
+
+        IsSend = isSent;
+
+        if (selectedMessages.contains(messageLayout)) {
+            selectedMessages.remove(messageLayout);
+//            messageLayout.setBackgroundColor(Color.TRANSPARENT);
+//            messageLayout.setBackgroundColor(isSent ? sentMessageBackgroundColor : receivedMessageBackgroundColor);
+//
+//            createBubbleDrawable(isSent);
+
+//            GradientDrawable highlight = new GradientDrawable();
+//            highlight.setColor(isSent ? sentMessageBackgroundColor : receivedMessageBackgroundColor);
+//            highlight.setCornerRadius(messageCornerRadius);
+//            messageLayout.setBackground(highlight);
+
+            GradientDrawable highlights = createWhatsAppBubbleDrawable(isSent);
+            messageLayout.setBackground(highlights);
+
+        } else {
+            GradientDrawable highlight = new GradientDrawable();
+            highlight.setColor(selectedMessageBgColor);
+            highlight.setCornerRadius(messageCornerRadius);
+            messageLayout.setBackground(highlight);
+            selectedMessages.add(messageLayout);
+
+            MessageSelected(message, messageId); // Now using ID instead of index
+        }
+//        MessageSelected(message, index + 1); // 1-based index
+//        MessageSelected(message, messageId); // Now using ID instead of index
+
+        // Provide haptic feedback for better UX
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            performHapticFeedback(messageLayout);
+        }
+    }
+
+//    private void toggleMessageSelection(View messageLayout, String message, int messageId) {
+//        if (selectedMessages.contains(messageLayout)) {
+//            selectedMessages.remove(messageLayout);
+//            messageLayout.setBackgroundColor(Color.TRANSPARENT);
+//            resetMessageBackground(messageLayout);
+//        } else {
+//            applySelectionHighlight(messageLayout);
+//            selectedMessages.add(messageLayout);
+//        }
+//
+//        MessageSelected(message, messageId); // Now using ID instead of index
+//
+//        // Provide haptic feedback for better UX
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+//            performHapticFeedback(messageLayout);
+//        }
+//    }
+
+    private void applySelectionHighlight(View messageLayout) {
+        // Create a highlight overlay while preserving the bubble
+        GradientDrawable highlight = new GradientDrawable();
+        highlight.setColor(selectedMessageBgColor);
+
+        if (squareBubbleEdge) {
+            // Match the bubble shape
+            boolean isSent = "sent_message".equals(messageLayout.getTag());
+            float[] radii = new float[8];
+            if (isSent) {
+                radii[0] = messageCornerRadius;
+                radii[1] = messageCornerRadius;
+                radii[2] = squareEdgeCornerRadius;
+                radii[3] = squareEdgeCornerRadius;
+                radii[4] = messageCornerRadius;
+                radii[5] = messageCornerRadius;
+                radii[6] = messageCornerRadius;
+                radii[7] = messageCornerRadius;
+            } else {
+                radii[0] = squareEdgeCornerRadius;
+                radii[1] = squareEdgeCornerRadius;
+                radii[2] = messageCornerRadius;
+                radii[3] = messageCornerRadius;
+                radii[4] = messageCornerRadius;
+                radii[5] = messageCornerRadius;
+                radii[6] = messageCornerRadius;
+                radii[7] = messageCornerRadius;
+            }
+            highlight.setCornerRadii(radii);
+        } else {
+            highlight.setCornerRadius(messageCornerRadius);
+        }
+
+        messageLayout.setBackground(highlight);
+    }
+
+    private void resetMessageBackground(View messageLayout) {
+        // Reapply the original bubble background
+        boolean isSent = "sent_message".equals(messageLayout.getTag());
+        GradientDrawable bubble = createBubbleDrawable(isSent);
+
+        // Find the message container and reapply bubble background
+        View messageContainer = findMessageContainer((ViewGroup) messageLayout);
+        if (messageContainer != null) {
+            messageContainer.setBackground(bubble);
+        }
+    }
+
+    private View findMessageContainer(ViewGroup parent) {
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
+            if (child.getBackground() instanceof GradientDrawable) {
+                return child;
+            } else if (child instanceof ViewGroup) {
+                View result = findMessageContainer((ViewGroup) child);
+                if (result != null) return result;
+            }
+        }
+        return null;
+    }
+
+    private void performHapticFeedback(View view) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+        }
+    }
+
+    // Add method to check if multi-selection is active
+    @SimpleFunction(description = "Check if multi-selection mode is active")
+    public boolean IsMultiSelectionActive() {
+        return !selectedMessages.isEmpty();
+    }
+
+    // Enhanced clear selection with animation
+//    @SimpleFunction(description = "Clear message selections with animation")
+//    public void ClearSelectionAnimated() {
+//        uiHandler.post(() -> {
+//            for (View view : selectedMessages) {
+//                view.animate()
+//                        .alpha(0.7f)
+//                        .alpha(1f)
+//                        .setDuration(200)
+//                        .start();
+////                resetMessageBackground(view);
+//                view.setBackgroundColor(Color.TRANSPARENT);
+//            }
+//            // Reset background color for all selected messages
+
+    ////            for (View view : selectedMessages) {
+    ////                view.setBackgroundColor(Color.TRANSPARENT);
+    ////            }
+//            selectedMessages.clear();
+//            SelectionCleared();
+//        });
+//    }
+    @SimpleEvent(description = "Triggered when selection is cleared")
+    public void SelectionCleared() {
+        EventDispatcher.dispatchEvent(this, "SelectionCleared");
+    }
+
+    // Events for feedback
+//    @SimpleEvent(description = "Triggered when text menu items are set")
+//    public void TextMenuItemsSet(int count) {
+//        EventDispatcher.dispatchEvent(this, "TextMenuItemsSet", count);
+//    }
+//
+//    @SimpleEvent(description = "Triggered when image menu items are set")
+//    public void ImageMenuItemsSet(int count) {
+//        EventDispatcher.dispatchEvent(this, "ImageMenuItemsSet", count);
+//    }
+
+    @SimpleEvent(description = "Triggered when text menu items are added")
+    public void TextMenuItemsAdded(int count) {
+        EventDispatcher.dispatchEvent(this, "TextMenuItemsAdded", count);
+    }
+
+    @SimpleEvent(description = "Triggered when image menu items are added")
+    public void ImageMenuItemsAdded(int count) {
+        EventDispatcher.dispatchEvent(this, "ImageMenuItemsAdded", count);
+    }
+
+    // 7
+//    @SimpleFunction(description = "Get current text menu items as list")
+//    public List<String> GetTextMenuItems() {
+//        return new ArrayList<>(customTextMenuItems);
+//    }
+
+//    @SimpleFunction(description = "Get current image menu items as list")
+//    public List<String> GetImageMenuItems() {
+//        return new ArrayList<>(customImageMenuItems);
+//    }
+
+    // 8
+    private void showTextOptionsMenu(View anchor, final String message, final int messageId) {
+        PopupMenu menu = new PopupMenu(context, anchor);
+
+        // Default items
+        final String copy = "Copy";
+        final String edit = "Edit";
+        final String delete = "Delete";
+
+        menu.getMenu().add(copy);
+        menu.getMenu().add(edit);
+        menu.getMenu().add(delete);
+
+        // Add custom items from the list
+        for (String item : customTextMenuItems) {
+            menu.getMenu().add(item);
+        }
+
+        menu.setOnMenuItemClickListener(item -> {
+            String title = item.getTitle().toString();
+
+            // Handle default items
+            if (title.equals(copy)) {
+                CopyToClipboard(message);
+                return true;
+//            } else if (title.equals(edit)) {
+//                EditMessageClicked(messageIndex, message);
+//                return true;
+            } else if (title.equals(delete)) {
+//                DeleteMessage(messageIndex);
+                DeleteMessageById(messageId);
+                return true;
+            }
+
+            // Fire event for custom items
+            TextMenuItemClicked(title, message, messageId);
+            return true;
+        });
+        menu.show();
+    }
+
+    private void showImageOptionsMenu(View anchor, String imageUrl, ImageView imageView, final int messageId) {
+        PopupMenu menu = new PopupMenu(context, anchor);
+
+        // Default items
+        final String reload = "Reload Image";
+        final String save = "Save Image";
+        final String share = "Share Image";
+
+        menu.getMenu().add(reload);
+        menu.getMenu().add(save);
+        menu.getMenu().add(share);
+
+        // Custom items from the list
+        for (String item : customImageMenuItems) {
+            menu.getMenu().add(item);
+        }
+
+        menu.setOnMenuItemClickListener(item -> {
+            String title = item.getTitle().toString();
+            boolean handled = false;
+
+            if (title.equals(reload)) {
+                loadImageWithPlaceholder(imageView, imageUrl, imageMessageMaxWidth);
+                handled = true;
+            }
+//            else if (title.equals(save)) {
+//                DownloadImage(imageUrl, "png");
+//                handled = true;
+//            }
+
+            ImageMenuItemClicked(title, imageUrl, messageId);
+            return handled;
+        });
+        menu.show();
+    }
+
+
+//    @SimpleEvent(description = "Triggered when edit message is clicked")
+//    public void EditMessageClicked(int messageIndex, String currentMessage) {
+//        EventDispatcher.dispatchEvent(this, "EditMessageClicked", messageIndex, currentMessage);
+//    }
+
+    private void setupLongClickListener(View messageLayout, final String message, final int messageId, boolean isSent) {
+        messageLayout.setOnLongClickListener(v -> {
+            toggleMessageSelection(messageLayout, message, messageId, isSent);
+
+            // Show context menu on long press
+            showTextOptionsMenu(v, message, messageId);
+            return true;
+        });
+
+        messageLayout.setOnClickListener(v -> {
+            if (!selectedMessages.isEmpty()) {
+                toggleMessageSelection(messageLayout, message, messageId, isSent);
+            }
+        });
+    }
+
+    // 28/09/25
+
+    @SimpleFunction(description = "Add multiple text menu items from YailList to existing ones")
+    public void AddTextMenuItems(YailList menuItems) {
+        customTextMenuItems.clear();
+        if (menuItems != null) {
+            int addedCount = 0;
+            // Convert YailList to Object[] for iteration
+            Object[] itemsArray = menuItems.toArray();
+            for (Object item : itemsArray) {
+                if (item != null) {
+                    String itemStr = item.toString().trim();
+                    if (!itemStr.isEmpty() && !customTextMenuItems.contains(itemStr)) {
+                        customTextMenuItems.add(itemStr);
+                        addedCount++;
+                    }
+                }
+            }
+            TextMenuItemsAdded(addedCount);
+        } else {
+            TextMenuItemsAdded(0);
+        }
+    }
+
+    @SimpleFunction(description = "Add multiple image menu items from YailList to existing ones")
+    public void AddImageMenuItems(YailList menuItems) {
+        customTextMenuItems.clear();
+        if (menuItems != null) {
+            int addedCount = 0;
+            Object[] itemsArray = menuItems.toArray();
+            for (Object item : itemsArray) {
+                if (item != null) {
+                    String itemStr = item.toString().trim();
+                    if (!itemStr.isEmpty() && !customImageMenuItems.contains(itemStr)) {
+                        customImageMenuItems.add(itemStr);
+                        addedCount++;
+                    }
+                }
+            }
+            ImageMenuItemsAdded(addedCount);
+        } else {
+            ImageMenuItemsAdded(0);
+        }
+    }
+
+    @SimpleFunction(description = "Get count of text menu items")
+    public int GetTextMenuItemsCount() {
+        return customTextMenuItems.size();
+    }
+
+    @SimpleFunction(description = "Get count of image menu items")
+    public int GetImageMenuItemsCount() {
+        return customImageMenuItems.size();
+    }
+
+    @SimpleFunction(description = "Get current text menu items as YailList")
+    public YailList GetTextMenuItems() {
+        // Convert ArrayList to YailList
+        return YailList.makeList(customTextMenuItems);
+    }
+
+    @SimpleFunction(description = "Get current image menu items as YailList")
+    public YailList GetImageMenuItems() {
+        // Convert ArrayList to YailList
+        return YailList.makeList(customImageMenuItems);
+    }
+
+    @SimpleFunction(description = "Get the first (oldest) active message ID in the chat. Returns 0 if no messages.")
+    public int GetFirstMessageId() {
+        try {
+            if (messageViewsById == null || messageViewsById.size() == 0) {
+                return 0;
+            }
+
+            // Ensure we have at least one valid message
+            for (int i = 0; i < messageViewsById.size(); i++) {
+                int key = messageViewsById.keyAt(i);
+                View messageView = messageViewsById.get(key);
+                if (messageView != null && messageView.getParent() != null) {
+                    return key; // Return first valid message ID
+                }
+            }
+            return 0; // No valid messages found
+        } catch (Exception e) {
+            Log.e("ChatUI", "Error getting first message ID: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    @SimpleFunction(description = "Get the last (newest) active message ID in the chat. Returns 0 if no messages.")
+    public int GetLastMessageId() {
+        try {
+            if (messageViewsById == null || messageViewsById.size() == 0) {
+                return 0;
+            }
+
+            // Start from the end and find the last valid message
+            for (int i = messageViewsById.size() - 1; i >= 0; i--) {
+                int key = messageViewsById.keyAt(i);
+                View messageView = messageViewsById.get(key);
+                if (messageView != null && messageView.getParent() != null) {
+                    return key; // Return last valid message ID
+                }
+            }
+            return 0; // No valid messages found
+        } catch (Exception e) {
+            Log.e("ChatUI", "Error getting last message ID: " + e.getMessage());
+            return 0;
+        }
+    }
 }
