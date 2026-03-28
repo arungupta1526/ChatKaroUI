@@ -4,14 +4,19 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 
 /**
- * Immutable-ish config bag passed to ChatAdapter.
- * Mirrors all the styling fields from ChatKaroUI.
- * When a property setter changes a value, ChatKaroUI updates this object
- * and calls adapter.notifyDataSetChanged() if needed.
+ * Configuration bag passed from ChatKaroUI → ChatAdapter.
+ *
+ * v3.1 additions:
+ * - starredIndicatorColor, starredIndicatorText
+ * - editedLabelText, editedLabelColor, showEditedLabel
+ * - htmlEnabledInChat, markdownEnabledInChat
+ * - replyBubbleBgColor, replyAccentColor
+ * - linkPreviewEnabled, linkPreviewBgColor, linkPreviewAccentColor
+ * - showDefaultMenuItems
  */
 public class ChatConfig {
 
-    // Colors
+    // ── Message colors ───────────────────────────────────────────────────────
     public int sentMessageBackgroundColor;
     public int receivedMessageBackgroundColor;
     public int sentMessageTextColor;
@@ -26,7 +31,33 @@ public class ChatConfig {
     public int typingIndicatorTextColor;
     public int avatarBackgroundColor;
 
-    // Sizes
+    // ── Star / bookmark ──────────────────────────────────────────────────────
+    public int starredIndicatorColor = 0xFFFFD700; // gold
+    public String starredIndicatorText = "★";
+
+    // ── Edited label ─────────────────────────────────────────────────────────
+    public boolean showEditedLabel = true;
+    public String editedLabelText = "edited";
+    public int editedLabelColor = 0xFF888888;
+
+    // ── Reply bubble ─────────────────────────────────────────────────────────
+    public int replyBubbleBgColor = 0x220084FF; // semi-transparent sent color
+    public int replyAccentColor = 0xFF0084FF; // left-border accent
+    public int replyPreviewTextColor = 0xFF444444; // message preview text color
+
+    // ── Link preview ─────────────────────────────────────────────────────────
+    public boolean linkPreviewEnabled = true;
+    public int linkPreviewBgColor = 0xFFF5F5F5;
+    public int linkPreviewAccentColor = 0xFF0084FF;
+
+    // ── Rendering modes ──────────────────────────────────────────────────────
+    public boolean htmlEnabledInChat = false;
+    public boolean markdownEnabledInChat = false;
+
+    // ── Menu ─────────────────────────────────────────────────────────────────
+    public boolean showDefaultMenuItems = true;
+
+    // ── Sizes ────────────────────────────────────────────────────────────────
     public int messageFontSize;
     public int systemMessageFontSize;
     public int nameFontSize;
@@ -38,11 +69,11 @@ public class ChatConfig {
     public int messageVerticalPadding;
     public int arrangementWidthPx;
 
-    // Floats
+    // ── Floats ───────────────────────────────────────────────────────────────
     public float messageCornerRadius;
     public float squareEdgeCornerRadius;
 
-    // Booleans
+    // ── Booleans ─────────────────────────────────────────────────────────────
     public boolean showTimestamp;
     public boolean showReadStatus;
     public boolean showMetadataInsideBubble;
@@ -52,24 +83,54 @@ public class ChatConfig {
     public boolean useResponsiveWidth;
     public boolean imageFunctionWidthFix;
 
-    // Strings
+    // ── Status text ──────────────────────────────────────────────────────────
     public String sentStatusText;
     public String receivedStatusText;
 
-    // Typeface
+    // ── Typeface ─────────────────────────────────────────────────────────────
     public Typeface typeface;
 
+    // ────────────────────────────────────────────────────────────────────────
+    // Factory
+    // ────────────────────────────────────────────────────────────────────────
+
     /**
-     * Creates a bubble GradientDrawable based on current config.
-     * Called by ChatAdapter during onBindViewHolder.
+     * Creates a bubble GradientDrawable for regular message backgrounds.
      */
     public GradientDrawable createBubbleDrawable(boolean isSent) {
         GradientDrawable shape = new GradientDrawable();
         shape.setColor(isSent ? sentMessageBackgroundColor : receivedMessageBackgroundColor);
+        applyCorners(shape, isSent);
+        return shape;
+    }
 
+    /**
+     * Creates a subtle reply-quote bubble drawable.
+     */
+    public GradientDrawable createReplyDrawable(boolean isSent) {
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(replyBubbleBgColor);
+        shape.setCornerRadius(messageCornerRadius * 0.5f);
+        return shape;
+    }
+
+    /**
+     * Creates a link-preview card drawable.
+     */
+    public GradientDrawable createLinkPreviewDrawable() {
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(linkPreviewBgColor);
+        shape.setCornerRadius(messageCornerRadius * 0.5f);
+        return shape;
+    }
+
+    // ── Internal helpers ─────────────────────────────────────────────────────
+
+    private void applyCorners(GradientDrawable shape, boolean isSent) {
         if (squareBubbleEdge) {
             float[] radii = new float[8];
             if (isSent) {
+                // top-left, top-right, bottom-right (square), bottom-left
                 radii[0] = messageCornerRadius;
                 radii[1] = messageCornerRadius;
                 radii[2] = squareEdgeCornerRadius;
@@ -92,6 +153,5 @@ public class ChatConfig {
         } else {
             shape.setCornerRadius(messageCornerRadius);
         }
-        return shape;
     }
 }

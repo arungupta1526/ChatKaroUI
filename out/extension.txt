@@ -1,78 +1,139 @@
 <div align="center">
 <h1><kbd>🧩 ChatKaroUI</kbd></h1>
 An extension for MIT App Inventor 2.<br>
-ChatKaroUI is a customizable chat component with text, images and messages support. <br>Made by: Arun Gupta <br><span><a href="https://community.appinventor.mit.edu/t/154865" target="_blank"><small><mark>Mit AI2 Community</mark></small></a></span> | <span><a href="https://community.kodular.io/t/301309" target="_blank"><small><mark>Kodular Community</mark></small></a></span>
+ChatKaroUI — customizable chat component with text, images, reply, star, HTML/Markdown, export/import and more. Made by: Arun Gupta <br><span><a href="https://community.appinventor.mit.edu/t/154865" target="_blank"><small><mark>Mit AI2 Community</mark></small></a></span> | <span><a href="https://community.kodular.io/t/301309" target="_blank"><small><mark>Kodular Community</mark></small></a></span>
 </div>
 
 ## 📝 Specifications
 * **
 📦 **Package:** com.prem.chatkaroui
-💾 **Size:** 52.75 KB
-⚙️ **Version:** 3.0
+💾 **Size:** 76.74 KB
+⚙️ **Version:** 4.4
 📱 **Minimum API Level:** 14
 📅 **Updated On:** [date=2026-03-28 timezone="Asia/Kolkata"]
 🔗 **Help URL:** [Learn more](https://www.telegram.me/Arungupta1526)
 💻 **Built & documented using:** [FAST](https://community.appinventor.mit.edu/t/fast-an-efficient-way-to-build-publish-extensions/129103?u=jewel) <small><mark>v5.7.1</mark></small>
 
 ## <kbd>Events:</kbd>
-**ChatKaroUI** has total 14 events.
+**ChatKaroUI** has total 24 events.
 
-### 1. ImageAlreadyExists
-Called when the image already exists and was not re-saved.
+### 1. MessageStarred
+Fired when a message is starred or unstarred.
+
+| Parameter | Type
+| - | - |
+| messageId | number
+| isStarred | boolean
+
+### 2. ReplyTriggered
+Fired when the user swipes a message to reply. Use messageId and messageText to populate your reply input field.
+
+| Parameter | Type
+| - | - |
+| messageId | number
+| messageText | text
+| isSent | boolean
+
+### 3. ReplyQuoteTapped
+Fired when the user taps the reply-quote strip inside a message to scroll to the original.
+
+| Parameter | Type
+| - | - |
+| originalMessageId | number
+
+### 4. LinkPreviewLoaded
+Fired when a link preview has been successfully loaded for a message.
+
+| Parameter | Type
+| - | - |
+| messageId | number
+| title | text
+| url | text
+
+### 5. ExportSaved
+Fired after SaveExportToFile succeeds.
+
+| Parameter | Type
+| - | - |
+| filePath | text
+
+### 6. ExportFailed
+Fired if SaveExportToFile fails.
+
+| Parameter | Type
+| - | - |
+| error | text
+
+### 7. ImportCompleted
+Fired when ImportChatFromJson finishes successfully.
+
+| Parameter | Type
+| - | - |
+| messageCount | number
+
+### 8. ImportFailed
+Fired if ImportChatFromJson fails.
+
+| Parameter | Type
+| - | - |
+| error | text
+
+### 9. ImageAlreadyExists
+Called when image already exists and was not re-saved.
 
 | Parameter | Type
 | - | - |
 | absolutePath | text
 | fileName | text
 
-### 2. ImageSaved
-Called when an image is saved successfully. Returns absolute path and file name.
+### 10. ImageSaved
+Called when an image is saved successfully.
 
 | Parameter | Type
 | - | - |
 | absolutePath | text
 | fileName | text
 
-### 3. ImageSaveFailed
-Called when saving an image fails. Returns the error message.
+### 11. ImageSaveFailed
+Called when saving an image fails.
 
 | Parameter | Type
 | - | - |
 | errorMessage | text
 
-### 4. ProfilePictureClicked
-Triggered when profile picture is clicked
+### 12. ProfilePictureClicked
+Triggered when a profile picture is clicked.
 
 | Parameter | Type
 | - | - |
 | name | text
 | avatarUrl | text
 
-### 5. MessageSelected
-Triggered when a message is selected
+### 13. MessageSelected
+Triggered when a message is selected.
 
 | Parameter | Type
 | - | - |
 | message | text
 | messageId | number
 
-### 6. MessageUpdated
-Triggered when a message is updated
+### 14. MessageUpdated
+Triggered when a message is updated.
 
 | Parameter | Type
 | - | - |
 | messageId | number
 | newMessage | text
 
-### 7. MessageScrolledTo
-Triggered when scroll to message is completed
+### 15. MessageScrolledTo
+Triggered when scroll to message completes.
 
 | Parameter | Type
 | - | - |
 | messageId | number
 
-### 8. TextMenuItemClicked
-Triggered when text menu item is clicked
+### 16. TextMenuItemClicked
+Triggered when a text menu item is clicked.
 
 | Parameter | Type
 | - | - |
@@ -80,8 +141,8 @@ Triggered when text menu item is clicked
 | message | text
 | messageId | number
 
-### 9. ImageMenuItemClicked
-Triggered when image menu item is clicked
+### 17. ImageMenuItemClicked
+Triggered when an image menu item is clicked.
 
 | Parameter | Type
 | - | - |
@@ -89,65 +150,84 @@ Triggered when image menu item is clicked
 | imageUrl | text
 | messageId | number
 
-### 10. ClipboardCopySuccess
-Fires when text is successfully copied to clipboard
+### 18. ClipboardCopySuccess
+Fired when text is successfully copied to clipboard.
 
 | Parameter | Type
 | - | - |
 | copiedText | text
 
-### 11. ClipboardCopyFailed
-Fires when copying to clipboard fails
+### 19. ClipboardCopyFailed
+Fired when copying to clipboard fails.
 
 | Parameter | Type
 | - | - |
 | error | text
 
-### 12. SelectionCleared
-Triggered when selection is cleared
+### 20. SelectionCleared
+Triggered when selection is cleared.
 
-### 13. TextMenuItemsAdded
-Triggered when text menu items are added
+### 21. TextMenuItemsAdded
+Triggered when text menu items are added.
+
+| Parameter | Type
+| - | - |
+| count | number
+
+### 22. ImageMenuItemsAdded
+Triggered when image menu items are added.
 
 | Parameter | Type
 | - | - |
 | count | number
 
-### 14. ImageMenuItemsAdded
-Triggered when image menu items are added
+### 23. ForwardTriggered
+Fired when the user taps Forward in the context menu.
 
 | Parameter | Type
 | - | - |
-| count | number
+| messageId | number
+| message | text
+
+### 24. EditRequested
+Fired when the user taps Edit in the context menu (sent messages only).
+
+| Parameter | Type
+| - | - |
+| messageId | number
+| currentMessage | text
 
 ## <kbd>Methods:</kbd>
-**ChatKaroUI** has total 43 methods.
+**ChatKaroUI** has total 59 methods.
 
 ### 1. Initialize
-Initialize the chat UI in a VerticalArrangement. This must be called before adding any messages.
+Initialize the chat UI in a VerticalArrangement. Must be called before adding messages.
 
 | Parameter | Type
 | - | - |
 | arrangement | component
 
-### 2. SendSimple
-Send a simple message without avatar or name
+### 2. OnOrientationChanged
+Call when screen orientation changes to reflow message bubbles.
+
+### 3. SendSimple
+Send a simple message without avatar or name.
 
 | Parameter | Type
 | - | - |
 | message | text
 | timestamp | text
 
-### 3. ReceiveSimple
-Receive a simple message without avatar or name
+### 4. ReceiveSimple
+Receive a simple message without avatar or name.
 
 | Parameter | Type
 | - | - |
 | message | text
 | timestamp | text
 
-### 4. SendWithAvatar
-Send a message with avatar and sender name
+### 5. SendWithAvatar
+Send a message with avatar and sender name.
 
 | Parameter | Type
 | - | - |
@@ -156,8 +236,8 @@ Send a message with avatar and sender name
 | senderName | text
 | timestamp | text
 
-### 5. ReceiveWithAvatar
-Receive a message with avatar and sender name
+### 6. ReceiveWithAvatar
+Receive a message with avatar and sender name.
 
 | Parameter | Type
 | - | - |
@@ -166,8 +246,8 @@ Receive a message with avatar and sender name
 | receiverName | text
 | timestamp | text
 
-### 6. SendTextImage
-Send a message with both text and image
+### 7. SendTextImage
+Send a message with both text and image.
 
 | Parameter | Type
 | - | - |
@@ -178,8 +258,8 @@ Send a message with both text and image
 | timestamp | text
 | messageOnTop | boolean
 
-### 7. ReceiveTextImage
-Receive a message with both text and image
+### 8. ReceiveTextImage
+Receive a message with both text and image.
 
 | Parameter | Type
 | - | - |
@@ -190,57 +270,116 @@ Receive a message with both text and image
 | timestamp | text
 | messageOnTop | boolean
 
-### 8. AddSystemMessage
-Add system systemMessage (e.g., 'User joined')
+### 9. SendReply
+Send a message as a reply to another message (shows a quote strip).
+
+| Parameter | Type
+| - | - |
+| message | text
+| timestamp | text
+| replyToId | number
+| replyToText | text
+| replyToSender | text
+
+### 10. ReceiveReply
+Receive a message as a reply to another message (shows a quote strip).
+
+| Parameter | Type
+| - | - |
+| message | text
+| avatarUrl | text
+| senderName | text
+| timestamp | text
+| replyToId | number
+| replyToText | text
+| replyToSender | text
+
+### 11. AddSystemMessage
+Add a system message (e.g., 'User joined').
 
 | Parameter | Type
 | - | - |
 | message | text
 
-### 9. DownloadImage
-Downloads an image from the URL, saves it to chat-images folder under ASD as PNG or JPG. Fires ImageSaved, ImageAlreadyExists or ImageSaveFailed.
-
-| Parameter | Type
-| - | - |
-| imageUrl | text
-| format | text
-
-### 10. ArrangementWidthPx
-Returns the width in pixels of the VerticalArrangement passed to Initialize, or screen width as fallback.
-
-* Return type: `number`
-
-### 11. ScreenWidthPx
-Returns the screen width in pixels.
-
-* Return type: `number`
-
-### 12. ResetTextMessageMaxWidth
-Reset max width to 80% of screen width
-
-### 13. ShowTypingIndicator
-Show typing indicator
-
-### 14. HideTypingIndicator
-Hide typing indicator
-
-### 15. DeleteMessageById
-Delete message by ID
+### 12. StarMessageById
+Star (bookmark) a message by its ID.
 
 | Parameter | Type
 | - | - |
 | messageId | number
 
-### 16. UpdateMessageById
-Update an existing message by ID
+### 13. UnstarMessageById
+Unstar a previously starred message by its ID.
+
+| Parameter | Type
+| - | - |
+| messageId | number
+
+### 14. ToggleStarById
+Toggle the starred state of a message. Returns the new state.
+
+* Return type: `boolean`
+
+| Parameter | Type
+| - | - |
+| messageId | number
+
+### 15. IsMessageStarred
+Returns true if the message with the given ID is starred.
+
+* Return type: `boolean`
+
+| Parameter | Type
+| - | - |
+| messageId | number
+
+### 16. GetStarredMessageIds
+Returns a list of all currently starred message IDs.
+
+* Return type: `list`
+
+### 17. ExportChatAsJson
+Export all chat messages as a JSON string. Store this string in a database or file to restore the chat later.
+
+* Return type: `text`
+
+### 18. ExportChatAsText
+Export the chat as a plain-text transcript (human-readable).
+
+* Return type: `text`
+
+### 19. SaveExportToFile
+Save exported JSON to a file in the chat-exports folder under ASD. Fires ExportSaved or ExportFailed.
+
+| Parameter | Type
+| - | - |
+| json | text
+| fileName | text
+
+### 20. ImportChatFromJson
+Load a previously exported JSON string and restore all messages.
+
+| Parameter | Type
+| - | - |
+| json | text
+
+### 21. DeleteMessageById
+Delete a message by its ID.
+
+| Parameter | Type
+| - | - |
+| messageId | number
+
+### 22. UpdateMessageById
+Update an existing message's text by ID. Marks it as edited.
 
 | Parameter | Type
 | - | - |
 | messageId | number
 | newMessage | text
 
-### 17. GetMessageTextById
-Get message text by ID
+### 23. GetMessageTextById
+Get the text of a message by its ID.
 
 * Return type: `text`
 
@@ -248,15 +387,15 @@ Get message text by ID
 | - | - |
 | messageId | number
 
-### 18. GotoMessageById
-Scroll to a specific message by ID
+### 24. GotoMessageById
+Smooth-scroll to a message by its ID.
 
 | Parameter | Type
 | - | - |
 | messageId | number
 
-### 19. MessageExists
-Check if a message ID exists
+### 25. MessageExists
+Returns true if a message with the given ID exists.
 
 * Return type: `boolean`
 
@@ -264,13 +403,13 @@ Check if a message ID exists
 | - | - |
 | messageId | number
 
-### 20. GetAllMessageIds
-Get all message IDs (excluding date headers and system messages)
+### 26. GetAllMessageIds
+Get all active message IDs (excludes date headers and system messages).
 
 * Return type: `list`
 
-### 21. IsMessageSent
-Get whether a message was sent (true) or received (false) by ID
+### 27. IsMessageSent
+Returns true if the message was sent (false = received).
 
 * Return type: `boolean`
 
@@ -278,39 +417,104 @@ Get whether a message was sent (true) or received (false) by ID
 | - | - |
 | messageId | number
 
-### 22. CleanupIdTracking
-Clean up internal ID tracking (useful after clearing chat)
+### 28. IsMessageEdited
+Returns true if a message has been edited.
 
-### 23. ClearAllMessages
-Clear all messages
+* Return type: `boolean`
 
-### 24. GetMessageCount
-Get total message count
+| Parameter | Type
+| - | - |
+| messageId | number
+
+### 29. MarkAsEdited
+Manually mark a message as edited without changing its content.
+
+| Parameter | Type
+| - | - |
+| messageId | number
+
+### 30. CleanupIdTracking
+Clean up internal ID tracking. Call after ClearAllMessages.
+
+### 31. ClearAllMessages
+Clear all chat messages.
+
+### 32. GetMessageCount
+Get the total count of chat messages (excluding system/date rows).
 
 * Return type: `number`
 
-### 25. ClearSelection
-Clear message selections
-
-### 26. GetSelectedCount
-Get number of selected messages
+### 33. GetFirstMessageId
+Get the first (oldest) active message ID. Returns 0 if none.
 
 * Return type: `number`
 
-### 27. DeleteSelectedMessages
-Delete selected messages
+### 34. GetLastMessageId
+Get the last (newest) active message ID. Returns 0 if none.
 
-### 28. ClearImageMenuItems
-Clear custom image menu items
+* Return type: `number`
 
-### 29. ClearTextMenuItems
-Clear custom text menu items
+### 35. ClearSelection
+Clear all message selections.
 
-### 30. ResetDateTracking
-Reset date tracking for new conversations
+### 36. GetSelectedMessageIds
+Get a list of all currently selected message IDs.
 
-### 31. GetYouTubeThumbnail
-Get YouTube thumbnail URL from a full URL or video ID.
+* Return type: `list`
+
+### 37. StarSelectedMessages
+Star/Unstar all currently selected messages.
+
+| Parameter | Type
+| - | - |
+| isStarred | boolean
+
+### 38. GetSelectedCount
+Get the number of selected messages.
+
+* Return type: `number`
+
+### 39. DeleteSelectedMessages
+Delete all currently selected messages.
+
+### 40. IsMultiSelectionActive
+Returns true if multi-selection mode is active.
+
+* Return type: `boolean`
+
+### 41. ShowTypingIndicator
+Show typing indicator.
+
+### 42. HideTypingIndicator
+Hide typing indicator.
+
+### 43. DownloadImage
+Download an image from URL and save to chat-images folder. Fires ImageSaved, ImageAlreadyExists, or ImageSaveFailed.
+
+| Parameter | Type
+| - | - |
+| imageUrl | text
+| format | text
+
+### 44. CopyToClipboard
+Copy text to clipboard.
+
+| Parameter | Type
+| - | - |
+| text | text
+
+### 45. GetCurrentTime
+Get current time formatted as hh:mm a.
+
+* Return type: `text`
+
+### 46. GetCurrentDate
+Get current date formatted as dd-MM-yyyy.
+
+* Return type: `text`
+
+### 47. GetYouTubeThumbnail
+Get YouTube thumbnail URL from a YouTube URL or video ID.
 
 * Return type: `text`
 
@@ -318,74 +522,64 @@ Get YouTube thumbnail URL from a full URL or video ID.
 | - | - |
 | youTubeURL | text
 
-### 32. GetCurrentTime
-Get current timestamp formatted as hh:mm a
+### 48. ArrangementWidthPx
+Returns the width in pixels of the VerticalArrangement (or screen width).
 
-* Return type: `text`
+* Return type: `number`
 
-### 33. GetCurrentDate
-Get current date formatted as dd-MM-yyyy
+### 49. ScreenWidthPx
+Returns the screen width in pixels.
 
-* Return type: `text`
+* Return type: `number`
 
-### 34. CopyToClipboard
-Copy text to clipboard
+### 50. ResetTextMessageMaxWidth
+Reset max width to 80% of screen width.
 
-| Parameter | Type
-| - | - |
-| text | text
+### 51. ResetDateTracking
+Reset date-header tracking (useful when starting a fresh conversation).
 
-### 35. IsMultiSelectionActive
-Check if multi-selection mode is active
-
-* Return type: `boolean`
-
-### 36. AddTextMenuItems
-Set text menu items from a YailList, replacing any existing items. Use ClearTextMenuItems first if appending is needed.
+### 52. AddTextMenuItems
+Add custom text menu items (replaces existing custom items).
 
 | Parameter | Type
 | - | - |
 | menuItems | list
 
-### 37. AddImageMenuItems
-Set image menu items from a YailList, replacing any existing items. Use ClearImageMenuItems first if appending is needed.
+### 53. AddImageMenuItems
+Add custom image menu items (replaces existing custom items).
 
 | Parameter | Type
 | - | - |
 | menuItems | list
 
-### 38. GetTextMenuItemsCount
-Get count of text menu items
+### 54. ClearTextMenuItems
+Clear custom text menu items.
 
-* Return type: `number`
+### 55. ClearImageMenuItems
+Clear custom image menu items.
 
-### 39. GetImageMenuItemsCount
-Get count of image menu items
-
-* Return type: `number`
-
-### 40. GetTextMenuItems
-Get current text menu items as YailList
+### 56. GetTextMenuItems
+Get current text menu items as a list.
 
 * Return type: `list`
 
-### 41. GetImageMenuItems
-Get current image menu items as YailList
+### 57. GetImageMenuItems
+Get current image menu items as a list.
 
 * Return type: `list`
 
-### 42. GetFirstMessageId
-Get the first (oldest) active message ID in the chat. Returns 0 if no messages.
+### 58. GetTextMenuItemsCount
+Get count of custom text menu items.
 
 * Return type: `number`
 
-### 43. GetLastMessageId
-Get the last (newest) active message ID in the chat. Returns 0 if no messages.
+### 59. GetImageMenuItemsCount
+Get count of custom image menu items.
 
 * Return type: `number`
 
 ## <kbd>Designer:</kbd>
-**ChatKaroUI** has total 35 designer properties.
+**ChatKaroUI** has total 50 designer properties.
 
 ### 1. AvatarSize
 
@@ -561,359 +755,584 @@ Get the last (newest) active message ID in the chat. Returns 0 if no messages.
 * Input type: `float`
 * Default value: `8.0`
 
+### 36. HtmlEnabledInChat
+
+* Input type: `boolean`
+* Default value: `False`
+
+### 37. MarkdownEnabledInChat
+
+* Input type: `boolean`
+* Default value: `False`
+
+### 38. LinkPreviewEnabled
+
+* Input type: `boolean`
+* Default value: `True`
+
+### 39. LinkPreviewBgColor
+
+* Input type: `color`
+* Default value: `F5F5F5`
+
+### 40. LinkPreviewAccentColor
+
+* Input type: `color`
+* Default value: `0084FF`
+
+### 41. ShowEditedLabel
+
+* Input type: `boolean`
+* Default value: `True`
+
+### 42. EditedLabelText
+
+* Input type: `string`
+* Default value: `edited`
+
+### 43. EditedLabelColor
+
+* Input type: `color`
+* Default value: `888888`
+
+### 44. StarredIndicatorColor
+
+* Input type: `color`
+* Default value: `FFD700`
+
+### 45. StarredIndicatorText
+
+* Input type: `string`
+* Default value: `★`
+
+### 46. ReplyBubbleBgColor
+
+* Input type: `color`
+* Default value: `0084FF`
+
+### 47. ReplyAccentColor
+
+* Input type: `color`
+* Default value: `0084FF`
+
+### 48. ReplyPreviewTextColor
+
+* Input type: `color`
+* Default value: `444444`
+
+### 49. SwipeToReplyEnabled
+
+* Input type: `boolean`
+* Default value: `True`
+
+### 50. ShowDefaultMenuItems
+
+* Input type: `boolean`
+* Default value: `True`
+
 ## <kbd>Setters:</kbd>
-**ChatKaroUI** has total 35 setter properties.
+**ChatKaroUI** has total 50 setter properties.
 
 ### 1. AvatarSize
-Get avatar size in DP
+Get avatar size in DP.
 
 * Input type: `number`
 
 ### 2. TextMessageMaxWidth
-Get max width for text messages in DP
+Get max width for text messages in DP.
 
 * Input type: `number`
 
 ### 3. ImageMessageMaxWidth
-Get max width for image messages in DP
+Get max width for image messages in DP.
 
 * Input type: `number`
 
 ### 4. FullscreenImageBGColor
-Get background color for fullscreen image viewer
+Sets or gets FullscreenImageBGColor.
 
 * Input type: `number`
 
 ### 5. AvatarBackgroundColor
-Get background color for avatars
+Sets or gets AvatarBackgroundColor.
 
 * Input type: `number`
 
 ### 6. SentMessageTextColor
-Get text color for sent messages
+Sets or gets SentMessageTextColor.
 
 * Input type: `number`
 
 ### 7. ReceivedMessageTextColor
-Get text color for received messages
+Sets or gets ReceivedMessageTextColor.
 
 * Input type: `number`
 
 ### 8. SentMessageBackgroundColor
-Get background color for sent messages
+Sets or gets SentMessageBackgroundColor.
 
 * Input type: `number`
 
 ### 9. ReceivedMessageBackgroundColor
-Get background color for received messages
+Sets or gets ReceivedMessageBackgroundColor.
 
 * Input type: `number`
 
 ### 10. MessageFontSize
-Get font size for messages
+Sets or gets MessageFontSize.
 
 * Input type: `number`
 
 ### 11. SystemMessageFontSize
-Get font size for messages
+Sets or gets SystemMessageFontSize.
 
 * Input type: `number`
 
 ### 12. SystemMessageTextColor
-Get text color for system systemMessages
+Sets or gets SystemMessageTextColor.
 
 * Input type: `number`
 
 ### 13. SelectedMessageBgColor
-Get background color for message selection
+Sets or gets SelectedMessageBgColor.
 
 * Input type: `number`
 
 ### 14. TypingIndicatorTextColor
-Get text color for typing indicator
+Sets or gets TypingIndicatorTextColor.
 
 * Input type: `number`
 
 ### 15. TimestampFontSize
-Get text size for timestamps
+Sets or gets TimestampFontSize.
 
 * Input type: `number`
 
 ### 16. TimestampTextColor
-Get text color for timestamps
+Sets or gets TimestampTextColor.
 
 * Input type: `number`
 
 ### 17. SentStatusTextColor
-Get text color for sent status
+Sets or gets SentStatusTextColor.
 
 * Input type: `number`
 
 ### 18. ReceivedStatusTextColor
-Get text color for received status
+Sets or gets ReceivedStatusTextColor.
 
 * Input type: `number`
 
 ### 19. SentStatusText
-Get status text for sent messages
+Sets or gets SentStatusText.
 
 * Input type: `text`
 
 ### 20. ReceivedStatusText
-Get status text for received messages
+Sets or gets ReceivedStatusText.
 
 * Input type: `text`
 
 ### 21. SentNameTextColor
-Get text color for sender names in sent messages
+Sets or gets SentNameTextColor.
 
 * Input type: `number`
 
 ### 22. ReceivedNameTextColor
-Get text color for sender names in received messages
+Sets or gets ReceivedNameTextColor.
 
 * Input type: `number`
 
 ### 23. NameFontSize
-Get font size for sender names
+Sets or gets NameFontSize.
 
 * Input type: `number`
 
 ### 24. MessageCornerRadius
-Get corner radius for message bubbles
+Sets or gets MessageCornerRadius.
 
 * Input type: `number`
 
 ### 25. MessageHorizontalPadding
-Get horizontal padding inside message bubbles
+Sets or gets MessageHorizontalPadding.
 
 * Input type: `number`
 
 ### 26. MessageVerticalPadding
-Get vertical padding inside message bubbles
+Sets or gets MessageVerticalPadding.
 
 * Input type: `number`
 
 ### 27. ShowTimestamp
-Get whether timestamps are shown
+Sets or gets ShowTimestamp.
 
 * Input type: `boolean`
 
 ### 28. ShowReadStatus
-Get whether read status indicators are shown
+Sets or gets ShowReadStatus.
 
 * Input type: `boolean`
 
 ### 29. AutoLinkEnabledInChat
-Get the current state of link detection
+Sets or gets AutoLinkEnabledInChat.
 
 * Input type: `boolean`
 
 ### 30. ShowMetadataInsideBubble
-Get whether metadata is shown inside bubble
+Sets or gets ShowMetadataInsideBubble.
 
 * Input type: `boolean`
 
 ### 31. ImageWidthFixInTextImageMessage
-Get whether image width is fixed in text-image messages.
+Sets or gets ImageWidthFixInTextImageMessage.
 
 * Input type: `boolean`
 
 ### 32. CustomFontFamily
-Get the current custom font family path.
+Sets or gets CustomFontFamily.
 
 * Input type: `text`
 
 ### 33. TypingIndicatorText
-Get typingIndicator Text messages
+Sets or gets TypingIndicatorText.
 
 * Input type: `text`
 
 ### 34. SquareBubbleEdge
-Get whether square bubble edges are enabled
+Sets or gets SquareBubbleEdge.
 
 * Input type: `boolean`
 
 ### 35. SquareEdgeCornerRadius
-Get square edge corner radius
+Sets or gets SquareEdgeCornerRadius.
 
 * Input type: `number`
+
+### 36. HtmlEnabledInChat
+Enable rendering of HTML tags in message text.
+
+* Input type: `boolean`
+
+### 37. MarkdownEnabledInChat
+Enable Markdown rendering in message text (bold, italic, code, links, etc.).
+
+* Input type: `boolean`
+
+### 38. LinkPreviewEnabled
+Enable automatic link-preview cards for URLs in messages.
+
+* Input type: `boolean`
+
+### 39. LinkPreviewBgColor
+Background color for link-preview cards.
+
+* Input type: `number`
+
+### 40. LinkPreviewAccentColor
+Accent color for link-preview cards (top bar and site name).
+
+* Input type: `number`
+
+### 41. ShowEditedLabel
+Show or hide the 'edited' label on updated messages.
+
+* Input type: `boolean`
+
+### 42. EditedLabelText
+Text used for the edited label (default: 'edited').
+
+* Input type: `text`
+
+### 43. EditedLabelColor
+Color for the edited label.
+
+* Input type: `number`
+
+### 44. StarredIndicatorColor
+Color of the star indicator shown in the metadata row.
+
+* Input type: `number`
+
+### 45. StarredIndicatorText
+Text/emoji shown as the star indicator (default: ★).
+
+* Input type: `text`
+
+### 46. ReplyBubbleBgColor
+Background color of the reply-quote strip.
+
+* Input type: `number`
+
+### 47. ReplyAccentColor
+Accent color of the reply-quote left border.
+
+* Input type: `number`
+
+### 48. ReplyPreviewTextColor
+The color of the text preview inside the reply-quote.
+
+* Input type: `number`
+
+### 49. SwipeToReplyEnabled
+Enable or disable swipe-to-reply gesture.
+
+* Input type: `boolean`
+
+### 50. ShowDefaultMenuItems
+Show or hide default context-menu items (Reply, Star, Copy, Delete, Forward, Edit).
+
+* Input type: `boolean`
 
 ## <kbd>Getters:</kbd>
-**ChatKaroUI** has total 35 getter properties.
+**ChatKaroUI** has total 50 getter properties.
 
 ### 1. AvatarSize
-Get avatar size in DP
+Get avatar size in DP.
 
 * Return type: `number`
 
 ### 2. TextMessageMaxWidth
-Get max width for text messages in DP
+Get max width for text messages in DP.
 
 * Return type: `number`
 
 ### 3. ImageMessageMaxWidth
-Get max width for image messages in DP
+Get max width for image messages in DP.
 
 * Return type: `number`
 
 ### 4. FullscreenImageBGColor
-Get background color for fullscreen image viewer
+Sets or gets FullscreenImageBGColor.
 
 * Return type: `number`
 
 ### 5. AvatarBackgroundColor
-Get background color for avatars
+Sets or gets AvatarBackgroundColor.
 
 * Return type: `number`
 
 ### 6. SentMessageTextColor
-Get text color for sent messages
+Sets or gets SentMessageTextColor.
 
 * Return type: `number`
 
 ### 7. ReceivedMessageTextColor
-Get text color for received messages
+Sets or gets ReceivedMessageTextColor.
 
 * Return type: `number`
 
 ### 8. SentMessageBackgroundColor
-Get background color for sent messages
+Sets or gets SentMessageBackgroundColor.
 
 * Return type: `number`
 
 ### 9. ReceivedMessageBackgroundColor
-Get background color for received messages
+Sets or gets ReceivedMessageBackgroundColor.
 
 * Return type: `number`
 
 ### 10. MessageFontSize
-Get font size for messages
+Sets or gets MessageFontSize.
 
 * Return type: `number`
 
 ### 11. SystemMessageFontSize
-Get font size for messages
+Sets or gets SystemMessageFontSize.
 
 * Return type: `number`
 
 ### 12. SystemMessageTextColor
-Get text color for system systemMessages
+Sets or gets SystemMessageTextColor.
 
 * Return type: `number`
 
 ### 13. SelectedMessageBgColor
-Get background color for message selection
+Sets or gets SelectedMessageBgColor.
 
 * Return type: `number`
 
 ### 14. TypingIndicatorTextColor
-Get text color for typing indicator
+Sets or gets TypingIndicatorTextColor.
 
 * Return type: `number`
 
 ### 15. TimestampFontSize
-Get text size for timestamps
+Sets or gets TimestampFontSize.
 
 * Return type: `number`
 
 ### 16. TimestampTextColor
-Get text color for timestamps
+Sets or gets TimestampTextColor.
 
 * Return type: `number`
 
 ### 17. SentStatusTextColor
-Get text color for sent status
+Sets or gets SentStatusTextColor.
 
 * Return type: `number`
 
 ### 18. ReceivedStatusTextColor
-Get text color for received status
+Sets or gets ReceivedStatusTextColor.
 
 * Return type: `number`
 
 ### 19. SentStatusText
-Get status text for sent messages
+Sets or gets SentStatusText.
 
 * Return type: `text`
 
 ### 20. ReceivedStatusText
-Get status text for received messages
+Sets or gets ReceivedStatusText.
 
 * Return type: `text`
 
 ### 21. SentNameTextColor
-Get text color for sender names in sent messages
+Sets or gets SentNameTextColor.
 
 * Return type: `number`
 
 ### 22. ReceivedNameTextColor
-Get text color for sender names in received messages
+Sets or gets ReceivedNameTextColor.
 
 * Return type: `number`
 
 ### 23. NameFontSize
-Get font size for sender names
+Sets or gets NameFontSize.
 
 * Return type: `number`
 
 ### 24. MessageCornerRadius
-Get corner radius for message bubbles
+Sets or gets MessageCornerRadius.
 
 * Return type: `number`
 
 ### 25. MessageHorizontalPadding
-Get horizontal padding inside message bubbles
+Sets or gets MessageHorizontalPadding.
 
 * Return type: `number`
 
 ### 26. MessageVerticalPadding
-Get vertical padding inside message bubbles
+Sets or gets MessageVerticalPadding.
 
 * Return type: `number`
 
 ### 27. ShowTimestamp
-Get whether timestamps are shown
+Sets or gets ShowTimestamp.
 
 * Return type: `boolean`
 
 ### 28. ShowReadStatus
-Get whether read status indicators are shown
+Sets or gets ShowReadStatus.
 
 * Return type: `boolean`
 
 ### 29. AutoLinkEnabledInChat
-Get the current state of link detection
+Sets or gets AutoLinkEnabledInChat.
 
 * Return type: `boolean`
 
 ### 30. ShowMetadataInsideBubble
-Get whether metadata is shown inside bubble
+Sets or gets ShowMetadataInsideBubble.
 
 * Return type: `boolean`
 
 ### 31. ImageWidthFixInTextImageMessage
-Get whether image width is fixed in text-image messages.
+Sets or gets ImageWidthFixInTextImageMessage.
 
 * Return type: `boolean`
 
 ### 32. CustomFontFamily
-Get the current custom font family path.
+Sets or gets CustomFontFamily.
 
 * Return type: `text`
 
 ### 33. TypingIndicatorText
-Get typingIndicator Text messages
+Sets or gets TypingIndicatorText.
 
 * Return type: `text`
 
 ### 34. SquareBubbleEdge
-Get whether square bubble edges are enabled
+Sets or gets SquareBubbleEdge.
 
 * Return type: `boolean`
 
 ### 35. SquareEdgeCornerRadius
-Get square edge corner radius
+Sets or gets SquareEdgeCornerRadius.
 
 * Return type: `number`
+
+### 36. HtmlEnabledInChat
+Enable rendering of HTML tags in message text.
+
+* Return type: `boolean`
+
+### 37. MarkdownEnabledInChat
+Enable Markdown rendering in message text (bold, italic, code, links, etc.).
+
+* Return type: `boolean`
+
+### 38. LinkPreviewEnabled
+Enable automatic link-preview cards for URLs in messages.
+
+* Return type: `boolean`
+
+### 39. LinkPreviewBgColor
+Background color for link-preview cards.
+
+* Return type: `number`
+
+### 40. LinkPreviewAccentColor
+Accent color for link-preview cards (top bar and site name).
+
+* Return type: `number`
+
+### 41. ShowEditedLabel
+Show or hide the 'edited' label on updated messages.
+
+* Return type: `boolean`
+
+### 42. EditedLabelText
+Text used for the edited label (default: 'edited').
+
+* Return type: `text`
+
+### 43. EditedLabelColor
+Color for the edited label.
+
+* Return type: `number`
+
+### 44. StarredIndicatorColor
+Color of the star indicator shown in the metadata row.
+
+* Return type: `number`
+
+### 45. StarredIndicatorText
+Text/emoji shown as the star indicator (default: ★).
+
+* Return type: `text`
+
+### 46. ReplyBubbleBgColor
+Background color of the reply-quote strip.
+
+* Return type: `number`
+
+### 47. ReplyAccentColor
+Accent color of the reply-quote left border.
+
+* Return type: `number`
+
+### 48. ReplyPreviewTextColor
+The color of the text preview inside the reply-quote.
+
+* Return type: `number`
+
+### 49. SwipeToReplyEnabled
+Enable or disable swipe-to-reply gesture.
+
+* Return type: `boolean`
+
+### 50. ShowDefaultMenuItems
+Show or hide default context-menu items (Reply, Star, Copy, Delete, Forward, Edit).
+
+* Return type: `boolean`
 
