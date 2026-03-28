@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 
 import static android.graphics.Color.parseColor;
 
-@DesignerComponent(version = 4, versionName = "4.4", description = "ChatKaroUI — customizable chat component with text, images, reply, star, "
+@DesignerComponent(version = 3, versionName = "3.0", description = "ChatKaroUI — customizable chat component with text, images, reply, star, "
         +
         "HTML/Markdown, export/import and more. " +
         "Made by: Arun Gupta <br>" +
