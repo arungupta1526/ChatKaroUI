@@ -7,12 +7,12 @@ ChatKaroUI is a customizable chat component with text, images and messages suppo
 ## 📝 Specifications
 * **
 📦 **Package:** com.prem.chatkaroui
-💾 **Size:** 49.05 KB
-⚙️ **Version:** 2.0
+💾 **Size:** 45.47 KB
+⚙️ **Version:** 2.1
 📱 **Minimum API Level:** 14
-📅 **Updated On:** [date=2025-09-29 timezone="Asia/Calcutta"]
+📅 **Updated On:** [date=2026-03-28 timezone="Asia/Kolkata"]
 🔗 **Help URL:** [Learn more](https://www.telegram.me/Arungupta1526)
-💻 **Built & documented using:** [FAST](https://community.appinventor.mit.edu/t/fast-an-efficient-way-to-build-publish-extensions/129103?u=jewel) <small><mark>v5.1.0</mark></small>
+💻 **Built & documented using:** [FAST](https://community.appinventor.mit.edu/t/fast-an-efficient-way-to-build-publish-extensions/129103?u=jewel) <small><mark>v5.7.1</mark></small>
 
 ## <kbd>Events:</kbd>
 **ChatKaroUI** has total 14 events.
@@ -206,12 +206,12 @@ Downloads an image from the URL, saves it to chat-images folder under ASD as PNG
 | format | text
 
 ### 10. ArrangementWidthPx
-Returns the Android API version of the device.
+Returns the width in pixels of the VerticalArrangement passed to Initialize, or screen width as fallback.
 
 * Return type: `number`
 
 ### 11. ScreenWidthPx
-Returns the Android API version of the device.
+Returns the screen width in pixels.
 
 * Return type: `number`
 
@@ -324,7 +324,7 @@ Get current timestamp formatted as hh:mm a
 * Return type: `text`
 
 ### 33. GetCurrentDate
-Get current date formatted as yyyy-MM-dd
+Get current date formatted as dd-MM-yyyy
 
 * Return type: `text`
 
@@ -341,14 +341,14 @@ Check if multi-selection mode is active
 * Return type: `boolean`
 
 ### 36. AddTextMenuItems
-Add multiple text menu items from YailList to existing ones
+Set text menu items from a YailList, replacing any existing items. Use ClearTextMenuItems first if appending is needed.
 
 | Parameter | Type
 | - | - |
 | menuItems | list
 
 ### 37. AddImageMenuItems
-Add multiple image menu items from YailList to existing ones
+Set image menu items from a YailList, replacing any existing items. Use ClearImageMenuItems first if appending is needed.
 
 | Parameter | Type
 | - | - |
@@ -480,12 +480,12 @@ Get the last (newest) active message ID in the chat. Returns 0 if no messages.
 ### 19. SentStatusText
 
 * Input type: `string`
-* Default value: `??`
+* Default value: `✓✓`
 
 ### 20. ReceivedStatusText
 
 * Input type: `string`
-* Default value: `?`
+* Default value: `🚀`
 
 ### 21. SentNameTextColor
 
@@ -715,12 +715,12 @@ Get whether metadata is shown inside bubble
 * Input type: `boolean`
 
 ### 31. ImageWidthFixInTextImageMessage
-Get whether metadata is shown inside bubble
+Get whether image width is fixed in text-image messages.
 
 * Input type: `boolean`
 
 ### 32. CustomFontFamily
-Get status text for sent messages
+Get the current custom font family path.
 
 * Input type: `text`
 
@@ -893,12 +893,12 @@ Get whether metadata is shown inside bubble
 * Return type: `boolean`
 
 ### 31. ImageWidthFixInTextImageMessage
-Get whether metadata is shown inside bubble
+Get whether image width is fixed in text-image messages.
 
 * Return type: `boolean`
 
 ### 32. CustomFontFamily
-Get status text for sent messages
+Get the current custom font family path.
 
 * Return type: `text`
 
