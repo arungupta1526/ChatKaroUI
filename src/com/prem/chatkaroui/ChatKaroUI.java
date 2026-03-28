@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
 
 import static android.graphics.Color.parseColor;
 
-@DesignerComponent(version = 2, versionName = "2.1", description = "ChatKaroUI is a customizable chat component with text, images and messages support. <br>"
+@DesignerComponent(version = 3, versionName = "3.0", description = "ChatKaroUI is a customizable chat component with text, images and messages support. <br>"
         +
         "Made by: Arun Gupta <br>" +
         "<span><a href=\"https://community.appinventor.mit.edu/t/154865\" target=\"_blank\"><small><mark>Mit AI2 Community</mark></small></a></span> | "

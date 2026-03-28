@@ -7,8 +7,8 @@ ChatKaroUI is a customizable chat component with text, images and messages suppo
 ## 📝 Specifications
 * **
 📦 **Package:** com.prem.chatkaroui
-💾 **Size:** 45.47 KB
-⚙️ **Version:** 2.1
+💾 **Size:** 52.75 KB
+⚙️ **Version:** 3.0
 📱 **Minimum API Level:** 14
 📅 **Updated On:** [date=2026-03-28 timezone="Asia/Kolkata"]
 🔗 **Help URL:** [Learn more](https://www.telegram.me/Arungupta1526)
@@ -265,7 +265,7 @@ Check if a message ID exists
 | messageId | number
 
 ### 20. GetAllMessageIds
-Get all message IDs (including inactive ones)
+Get all message IDs (excluding date headers and system messages)
 
 * Return type: `list`
 
