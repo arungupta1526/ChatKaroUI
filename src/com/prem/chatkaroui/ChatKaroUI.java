@@ -1151,15 +1151,6 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component,
         return false;
     }
 
-    // @SimpleFunction(description = "Get all message IDs currently in chat")
-    // public List<Integer> GetAllMessageIds() {
-    // List<Integer> ids = new ArrayList<>();
-    // for (int i = 0; i < messageViewsById.size(); i++) {
-    // ids.add(messageViewsById.keyAt(i));
-    // }
-    // return ids;
-    // }
-
     @SimpleFunction(description = "Get all message IDs (excluding date headers and system messages)")
     public YailList GetAllMessageIds() {
         List<Integer> allIds = new ArrayList<>();
@@ -1887,7 +1878,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component,
     public void TypingIndicatorText(String text) {
         typingIndicatorText = text;
         if (typingIndicatorPosition >= 0 && typingIndicatorPosition < messageList.size()) {
-            messageList.get(typingIndicatorPosition).message = text;
+            messageList.get(typingIndicatorPosition).message = text.isEmpty() ? "Typing" : text;
             if (chatAdapter != null) {
                 chatAdapter.notifyItemChanged(typingIndicatorPosition);
             }
@@ -2008,27 +1999,6 @@ public class ChatKaroUI extends AndroidNonvisibleComponent implements Component,
         return !selectedMessageIds.isEmpty();
     }
 
-    // Enhanced clear selection with animation
-    // @SimpleFunction(description = "Clear message selections with animation")
-    // public void ClearSelectionAnimated() {
-    // uiHandler.post(() -> {
-    // for (View view : selectedMessages) {
-    // view.animate()
-    // .alpha(0.7f)
-    // .alpha(1f)
-    // .setDuration(200)
-    // .start();
-    // view.setBackgroundColor(Color.TRANSPARENT);
-    // }
-    // // Reset background color for all selected messages
-
-    //// for (View view : selectedMessages) {
-    //// view.setBackgroundColor(Color.TRANSPARENT);
-    //// }
-    // selectedMessages.clear();
-    // SelectionCleared();
-    // });
-    // }
     @SimpleEvent(description = "Triggered when selection is cleared")
     public void SelectionCleared() {
         EventDispatcher.dispatchEvent(this, "SelectionCleared");

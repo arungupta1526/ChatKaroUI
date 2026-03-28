@@ -31,11 +31,9 @@ desugar_dex: true
 # - https://jitpack.io/
 
 # Runtime dependencies [Remote and Local]
-# dependencies:
-# - groupId:artifactId:version
-# - mylibrary.jar
-# - androidx.recyclerview:recyclerview:1.3.2  
-# - androidx.core:core:1.12.0
+dependencies:
+  - androidx.recyclerview:recyclerview:1.3.2
+  - androidx.core:core:1.12.0
 
 # Compile-time dependencies [Remote and Local]
 # compile_time:

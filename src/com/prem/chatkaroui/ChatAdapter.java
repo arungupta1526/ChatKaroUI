@@ -271,8 +271,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     || model.viewType == MessageModel.TYPE_RECEIVED_TEXT_IMAGE)
                     && model.imageUrl != null && !model.imageUrl.isEmpty();
 
-            if (hasImage) {
-                // Has image bubble wrapper needs its own background
+            if (hasImage || cfg.showMetadataInsideBubble) {
+                // Image messages and inside-bubble metadata need a shared bubble background.
                 innerContent.setBackground(cfg.createBubbleDrawable(isSent));
             }
 
@@ -400,7 +400,11 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 this.statusView = statusView;
             }
 
-            bubbleWrapper.addView(metaLayout);
+            if (cfg.showMetadataInsideBubble) {
+                innerContent.addView(metaLayout);
+            } else {
+                bubbleWrapper.addView(metaLayout);
+            }
 
             // ── Assemble content row ──
             if (isSent) {
