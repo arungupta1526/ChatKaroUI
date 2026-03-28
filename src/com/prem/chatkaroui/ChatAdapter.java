@@ -269,6 +269,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 String preview = model.replyToText != null ? model.replyToText : "";
                 if (preview.length() > 80) preview = preview.substring(0, 80) + "…";
                 replyPreviewView.setText(preview);
+                replyPreviewView.setTextColor(cfg.replyPreviewTextColor);
                 
                 final int replyId = model.replyToId;
                 replyStrip.setOnClickListener(v -> {
@@ -429,20 +430,42 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             final String msgText = model.message != null ? model.message : "";
             final int msgId = model.messageId;
             final boolean starred = model.isStarred;
-            innerContent.setOnLongClickListener(v -> {
+
+            View.OnLongClickListener longClickListener = v -> {
                 if (cb != null && msgId > 0) {
                     if (cb.isMultiSelectionActive()) {
                         cb.onMessageSelected(msgText, msgId);
                     } else {
-                        cb.showTextOptionsMenu(v, msgText, msgId, isSent, starred);
+                        cb.onMessageSelected(msgText, msgId);
+                        v.post(() -> cb.showTextOptionsMenu(innerContent, msgText, msgId, isSent, starred));
                     }
                 }
                 return true;
-            });
-            innerContent.setOnClickListener(v -> {
+            };
+
+            View.OnClickListener clickListener = v -> {
                 if (cb != null && msgId > 0 && cb.isMultiSelectionActive())
                     cb.onMessageSelected(msgText, msgId);
+            };
+
+            innerContent.setOnLongClickListener(longClickListener);
+            innerContent.setOnClickListener(clickListener);
+            bubbleWrapper.setOnLongClickListener(longClickListener);
+            bubbleWrapper.setOnClickListener(clickListener);
+            msgView.setOnLongClickListener(longClickListener);
+            msgView.setOnClickListener(clickListener);
+            replyStrip.setOnLongClickListener(longClickListener);
+            
+            replyStrip.setOnClickListener(v -> {
+                if (cb != null && msgId > 0 && cb.isMultiSelectionActive()) {
+                    cb.onMessageSelected(msgText, msgId);
+                } else if (cb != null && model.replyToId > 0) {
+                    cb.onReplyQuoteTapped(model.replyToId);
+                }
             });
+
+            rootLayout.setOnLongClickListener(longClickListener);
+            rootLayout.setOnClickListener(clickListener);
         }
 
         private void initViews(Context ctx, boolean isSent, ChatConfig cfg, int viewType) {
@@ -488,10 +511,15 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             innerContent.setOrientation(LinearLayout.VERTICAL);
             innerContent.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+            int arrangementW = cfg.arrangementWidthPx > 0 ? cfg.arrangementWidthPx : ctx.getResources().getDisplayMetrics().widthPixels;
+            int defaultMaxPx = (int) (arrangementW * 0.8f);
+            int maxWidthDp = cfg.textMessageMaxWidth;
+            int pmaxPx = (cfg.useResponsiveWidth && maxWidthDp == 0) ? defaultMaxPx : dpToPx(ctx, maxWidthDp);
+
             // Reply Strip
             replyStrip = new LinearLayout(ctx);
             replyStrip.setOrientation(LinearLayout.HORIZONTAL);
-            LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             sp.setMargins(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, 6), dpToPx(ctx, cfg.messageHorizontalPadding), 0);
             replyStrip.setLayoutParams(sp);
             replyStrip.setBackground(cfg.createReplyDrawable(isSent));
@@ -506,15 +534,21 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             LinearLayout textCol = new LinearLayout(ctx);
             textCol.setOrientation(LinearLayout.VERTICAL);
-            textCol.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            textCol.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             replySenderView = new TextView(ctx);
             replySenderView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.nameFontSize);
             replySenderView.setTypeface(null, Typeface.BOLD);
             replySenderView.setTextColor(cfg.replyAccentColor);
+            replySenderView.setMaxWidth(pmaxPx - dpToPx(ctx, 30));
+            replySenderView.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            replySenderView.setSingleLine(true);
             textCol.addView(replySenderView);
+            
             replyPreviewView = new TextView(ctx);
             replyPreviewView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.messageFontSize - 2);
             replyPreviewView.setMaxLines(2);
+            replyPreviewView.setMaxWidth(pmaxPx - dpToPx(ctx, 30));
+            replyPreviewView.setEllipsize(android.text.TextUtils.TruncateAt.END);
             textCol.addView(replyPreviewView);
             replyStrip.addView(textCol);
             innerContent.addView(replyStrip);
@@ -526,6 +560,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             msgView.setPadding(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding), dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding));
             msgView.setSingleLine(false);
             msgView.setHorizontallyScrolling(false);
+            msgView.setMaxWidth(pmaxPx);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 msgView.setBreakStrategy(android.text.Layout.BREAK_STRATEGY_SIMPLE);
             }
@@ -546,10 +581,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             // Link Preview Card
             previewCard = new LinearLayout(ctx);
             previewCard.setOrientation(LinearLayout.VERTICAL);
-            int arrangementW = cfg.arrangementWidthPx > 0 ? cfg.arrangementWidthPx : ctx.getResources().getDisplayMetrics().widthPixels;
-            int defaultMaxPx = (int) (arrangementW * 0.8f);
-            int maxWidthDp = cfg.textMessageMaxWidth;
-            int pmaxPx = (cfg.useResponsiveWidth && maxWidthDp == 0) ? defaultMaxPx : dpToPx(ctx, maxWidthDp);
             LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(pmaxPx, ViewGroup.LayoutParams.WRAP_CONTENT);
             cp.setMargins(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, 4), dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding));
             previewCard.setLayoutParams(cp);

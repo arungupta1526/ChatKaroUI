@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 
 import static android.graphics.Color.parseColor;
 
-@DesignerComponent(version = 4, versionName = "4.1", description = "ChatKaroUI — customizable chat component with text, images, reply, star, "
+@DesignerComponent(version = 4, versionName = "4.4", description = "ChatKaroUI — customizable chat component with text, images, reply, star, "
         +
         "HTML/Markdown, export/import and more. " +
         "Made by: Arun Gupta <br>" +
@@ -119,6 +119,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
     private int editedLabelColor = Color.GRAY;
     private int replyBubbleBgColor = 0x220084FF;
     private int replyAccentColor = parseColor("#0084ff");
+    private int replyPreviewTextColor = 0xFF444444;
     private int linkPreviewBgColor = 0xFFF5F5F5;
     private int linkPreviewAccentColor = parseColor("#0084ff");
 
@@ -309,6 +310,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
         c.editedLabelColor = editedLabelColor;
         c.replyBubbleBgColor = replyBubbleBgColor;
         c.replyAccentColor = replyAccentColor;
+        c.replyPreviewTextColor = replyPreviewTextColor;
         c.linkPreviewEnabled = linkPreviewEnabled;
         c.linkPreviewBgColor = linkPreviewBgColor;
         c.linkPreviewAccentColor = linkPreviewAccentColor;
@@ -366,6 +368,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
         chatConfig.editedLabelColor = u.editedLabelColor;
         chatConfig.replyBubbleBgColor = u.replyBubbleBgColor;
         chatConfig.replyAccentColor = u.replyAccentColor;
+        chatConfig.replyPreviewTextColor = u.replyPreviewTextColor;
         chatConfig.linkPreviewEnabled = u.linkPreviewEnabled;
         chatConfig.linkPreviewBgColor = u.linkPreviewBgColor;
         chatConfig.linkPreviewAccentColor = u.linkPreviewAccentColor;
@@ -1045,6 +1048,26 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
         });
     }
 
+    @SimpleFunction(description = "Get a list of all currently selected message IDs.")
+    public com.google.appinventor.components.runtime.util.YailList GetSelectedMessageIds() {
+        return com.google.appinventor.components.runtime.util.YailList.makeList(selectedMessageIds);
+    }
+
+    @SimpleFunction(description = "Star/Unstar all currently selected messages.")
+    public void StarSelectedMessages(boolean isStarred) {
+        uiHandler.post(() -> {
+            for (int id : selectedMessageIds) {
+                int pos = findMessagePositionById(id);
+                if (pos >= 0) {
+                    messageList.get(pos).isStarred = isStarred;
+                    if (chatAdapter != null)
+                        chatAdapter.notifyItemChanged(pos);
+                }
+            }
+            ClearSelection();
+        });
+    }
+
     @SimpleFunction(description = "Get the number of selected messages.")
     public int GetSelectedCount() {
         return selectedMessageIds.size();
@@ -1226,6 +1249,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
                     TextMenuItemClicked(title, message, messageId);
                     break;
             }
+            ClearSelection();
             return true;
         });
         menu.show();
@@ -1246,6 +1270,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
             } else {
                 ImageMenuItemClicked(title, imageUrl, messageId);
             }
+            ClearSelection();
             return true;
         });
         menu.show();
@@ -2391,6 +2416,18 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
     @SimpleProperty(description = "Sets or gets ReplyAccentColor.")
     public void ReplyAccentColor(int v) {
         replyAccentColor = v;
+        refreshChatConfig();
+    }
+
+    @SimpleProperty(description = "The color of the text preview inside the reply-quote.")
+    public int ReplyPreviewTextColor() {
+        return replyPreviewTextColor;
+    }
+
+    @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_COLOR, defaultValue = "&HFF444444")
+    @SimpleProperty(description = "Sets or gets ReplyPreviewTextColor.")
+    public void ReplyPreviewTextColor(int v) {
+        replyPreviewTextColor = v;
         refreshChatConfig();
     }
 

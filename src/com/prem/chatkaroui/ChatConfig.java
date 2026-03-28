@@ -43,6 +43,7 @@ public class ChatConfig {
     // ── Reply bubble ─────────────────────────────────────────────────────────
     public int replyBubbleBgColor = 0x220084FF; // semi-transparent sent color
     public int replyAccentColor = 0xFF0084FF; // left-border accent
+    public int replyPreviewTextColor = 0xFF444444; // message preview text color
 
     // ── Link preview ─────────────────────────────────────────────────────────
     public boolean linkPreviewEnabled = true;

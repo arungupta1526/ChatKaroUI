@@ -7,8 +7,8 @@ ChatKaroUI — customizable chat component with text, images, reply, star, HTML/
 ## 📝 Specifications
 * **
 📦 **Package:** com.prem.chatkaroui
-💾 **Size:** 75.29 KB
-⚙️ **Version:** 4.1
+💾 **Size:** 76.74 KB
+⚙️ **Version:** 4.4
 📱 **Minimum API Level:** 14
 📅 **Updated On:** [date=2026-03-28 timezone="Asia/Kolkata"]
 🔗 **Help URL:** [Learn more](https://www.telegram.me/Arungupta1526)
@@ -198,7 +198,7 @@ Fired when the user taps Edit in the context menu (sent messages only).
 | currentMessage | text
 
 ## <kbd>Methods:</kbd>
-**ChatKaroUI** has total 57 methods.
+**ChatKaroUI** has total 59 methods.
 
 ### 1. Initialize
 Initialize the chat UI in a VerticalArrangement. Must be called before adding messages.
@@ -457,26 +457,38 @@ Get the last (newest) active message ID. Returns 0 if none.
 ### 35. ClearSelection
 Clear all message selections.
 
-### 36. GetSelectedCount
+### 36. GetSelectedMessageIds
+Get a list of all currently selected message IDs.
+
+* Return type: `list`
+
+### 37. StarSelectedMessages
+Star/Unstar all currently selected messages.
+
+| Parameter | Type
+| - | - |
+| isStarred | boolean
+
+### 38. GetSelectedCount
 Get the number of selected messages.
 
 * Return type: `number`
 
-### 37. DeleteSelectedMessages
+### 39. DeleteSelectedMessages
 Delete all currently selected messages.
 
-### 38. IsMultiSelectionActive
+### 40. IsMultiSelectionActive
 Returns true if multi-selection mode is active.
 
 * Return type: `boolean`
 
-### 39. ShowTypingIndicator
+### 41. ShowTypingIndicator
 Show typing indicator.
 
-### 40. HideTypingIndicator
+### 42. HideTypingIndicator
 Hide typing indicator.
 
-### 41. DownloadImage
+### 43. DownloadImage
 Download an image from URL and save to chat-images folder. Fires ImageSaved, ImageAlreadyExists, or ImageSaveFailed.
 
 | Parameter | Type
@@ -484,24 +496,24 @@ Download an image from URL and save to chat-images folder. Fires ImageSaved, Ima
 | imageUrl | text
 | format | text
 
-### 42. CopyToClipboard
+### 44. CopyToClipboard
 Copy text to clipboard.
 
 | Parameter | Type
 | - | - |
 | text | text
 
-### 43. GetCurrentTime
+### 45. GetCurrentTime
 Get current time formatted as hh:mm a.
 
 * Return type: `text`
 
-### 44. GetCurrentDate
+### 46. GetCurrentDate
 Get current date formatted as dd-MM-yyyy.
 
 * Return type: `text`
 
-### 45. GetYouTubeThumbnail
+### 47. GetYouTubeThumbnail
 Get YouTube thumbnail URL from a YouTube URL or video ID.
 
 * Return type: `text`
@@ -510,64 +522,64 @@ Get YouTube thumbnail URL from a YouTube URL or video ID.
 | - | - |
 | youTubeURL | text
 
-### 46. ArrangementWidthPx
+### 48. ArrangementWidthPx
 Returns the width in pixels of the VerticalArrangement (or screen width).
 
 * Return type: `number`
 
-### 47. ScreenWidthPx
+### 49. ScreenWidthPx
 Returns the screen width in pixels.
 
 * Return type: `number`
 
-### 48. ResetTextMessageMaxWidth
+### 50. ResetTextMessageMaxWidth
 Reset max width to 80% of screen width.
 
-### 49. ResetDateTracking
+### 51. ResetDateTracking
 Reset date-header tracking (useful when starting a fresh conversation).
 
-### 50. AddTextMenuItems
+### 52. AddTextMenuItems
 Add custom text menu items (replaces existing custom items).
 
 | Parameter | Type
 | - | - |
 | menuItems | list
 
-### 51. AddImageMenuItems
+### 53. AddImageMenuItems
 Add custom image menu items (replaces existing custom items).
 
 | Parameter | Type
 | - | - |
 | menuItems | list
 
-### 52. ClearTextMenuItems
+### 54. ClearTextMenuItems
 Clear custom text menu items.
 
-### 53. ClearImageMenuItems
+### 55. ClearImageMenuItems
 Clear custom image menu items.
 
-### 54. GetTextMenuItems
+### 56. GetTextMenuItems
 Get current text menu items as a list.
 
 * Return type: `list`
 
-### 55. GetImageMenuItems
+### 57. GetImageMenuItems
 Get current image menu items as a list.
 
 * Return type: `list`
 
-### 56. GetTextMenuItemsCount
+### 58. GetTextMenuItemsCount
 Get count of custom text menu items.
 
 * Return type: `number`
 
-### 57. GetImageMenuItemsCount
+### 59. GetImageMenuItemsCount
 Get count of custom image menu items.
 
 * Return type: `number`
 
 ## <kbd>Designer:</kbd>
-**ChatKaroUI** has total 49 designer properties.
+**ChatKaroUI** has total 50 designer properties.
 
 ### 1. AvatarSize
 
@@ -803,18 +815,23 @@ Get count of custom image menu items.
 * Input type: `color`
 * Default value: `0084FF`
 
-### 48. SwipeToReplyEnabled
+### 48. ReplyPreviewTextColor
+
+* Input type: `color`
+* Default value: `444444`
+
+### 49. SwipeToReplyEnabled
 
 * Input type: `boolean`
 * Default value: `True`
 
-### 49. ShowDefaultMenuItems
+### 50. ShowDefaultMenuItems
 
 * Input type: `boolean`
 * Default value: `True`
 
 ## <kbd>Setters:</kbd>
-**ChatKaroUI** has total 49 setter properties.
+**ChatKaroUI** has total 50 setter properties.
 
 ### 1. AvatarSize
 Get avatar size in DP.
@@ -1051,18 +1068,23 @@ Accent color of the reply-quote left border.
 
 * Input type: `number`
 
-### 48. SwipeToReplyEnabled
+### 48. ReplyPreviewTextColor
+The color of the text preview inside the reply-quote.
+
+* Input type: `number`
+
+### 49. SwipeToReplyEnabled
 Enable or disable swipe-to-reply gesture.
 
 * Input type: `boolean`
 
-### 49. ShowDefaultMenuItems
+### 50. ShowDefaultMenuItems
 Show or hide default context-menu items (Reply, Star, Copy, Delete, Forward, Edit).
 
 * Input type: `boolean`
 
 ## <kbd>Getters:</kbd>
-**ChatKaroUI** has total 49 getter properties.
+**ChatKaroUI** has total 50 getter properties.
 
 ### 1. AvatarSize
 Get avatar size in DP.
@@ -1299,12 +1321,17 @@ Accent color of the reply-quote left border.
 
 * Return type: `number`
 
-### 48. SwipeToReplyEnabled
+### 48. ReplyPreviewTextColor
+The color of the text preview inside the reply-quote.
+
+* Return type: `number`
+
+### 49. SwipeToReplyEnabled
 Enable or disable swipe-to-reply gesture.
 
 * Return type: `boolean`
 
-### 49. ShowDefaultMenuItems
+### 50. ShowDefaultMenuItems
 Show or hide default context-menu items (Reply, Star, Copy, Delete, Forward, Edit).
 
 * Return type: `boolean`
