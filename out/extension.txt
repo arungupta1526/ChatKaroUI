@@ -8,7 +8,7 @@ ChatKaroUI — customizable chat component with text, images, reply, star, HTML/
 * **
 📦 **Package:** com.prem.chatkaroui
 💾 **Size:** 76.74 KB
-⚙️ **Version:** 4.4
+⚙️ **Version:** 3.0
 📱 **Minimum API Level:** 14
 📅 **Updated On:** [date=2026-03-28 timezone="Asia/Kolkata"]
 🔗 **Help URL:** [Learn more](https://www.telegram.me/Arungupta1526)
