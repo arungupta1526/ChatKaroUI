@@ -24,7 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 /**
- * RecyclerView Adapter for ChatKaroUI v3.1.
+ * RecyclerView Adapter for ChatKaroUI v3.2.
  *
  * New in v3.1:
  * - Reply-quote bubble above message content
@@ -49,7 +49,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         void onProfilePictureClicked(String name, String avatarUrl);
 
-        void showTextOptionsMenu(View anchor, String message, int messageId, boolean isSent, boolean isStarred, String senderName, String avatarUrl);
+        void showTextOptionsMenu(View anchor, String message, int messageId, boolean isSent, boolean isStarred,
+                String senderName, String avatarUrl);
 
         void showImageOptionsMenu(View anchor, String imageUrl, ImageView imageView, int messageId);
 
@@ -112,8 +113,17 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 return new TypingVH(createTypingView());
             case MessageModel.TYPE_UNREAD_SEPARATOR:
                 return new SystemMessageVH(createSystemMessageView());
+            case MessageModel.TYPE_SENT_SIMPLE:
+            case MessageModel.TYPE_SENT_AVATAR:
+            case MessageModel.TYPE_SENT_TEXT_IMAGE:
+                return new SentMessageVH(createMessageRootView(), config, viewType);
+            case MessageModel.TYPE_RECEIVED_SIMPLE:
+            case MessageModel.TYPE_RECEIVED_AVATAR:
+            case MessageModel.TYPE_RECEIVED_TEXT_IMAGE:
+                return new ReceivedMessageVH(createMessageRootView(), config, viewType);
             default:
-                return new MessageVH(createMessageRootView());
+                // Default to Sent if unknown, but better to handle all
+                return new SentMessageVH(createMessageRootView(), config, viewType);
         }
     }
 
@@ -126,8 +136,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             ((SystemMessageVH) holder).bind(model, config);
         else if (holder instanceof TypingVH)
             ((TypingVH) holder).bind(model);
-        else if (holder instanceof MessageVH)
-            ((MessageVH) holder).bind(model, eventCallback, imageLoader, config);
+        else if (holder instanceof BaseMessageVH)
+            ((BaseMessageVH) holder).bind(model, eventCallback, imageLoader, config);
     }
 
     // ── Simple ViewHolders ───────────────────────────────────────────────────
@@ -153,10 +163,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             tv = v;
         }
 
-        // void bind(MessageModel m) {
-        // tv.setText(m.message);
-        // }
-
         void bind(MessageModel m, ChatConfig cfg) {
             tv.setText(m.message);
             tv.setTextColor(cfg.systemMessageTextColor);
@@ -177,9 +183,9 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
-    // ── Message ViewHolder ───────────────────────────────────────────────────
+    // ── Message ViewHolder Hierarchy (v3.2 Performance shim for v3.2 Logic) ───
 
-    static class MessageVH extends RecyclerView.ViewHolder {
+    static abstract class BaseMessageVH extends RecyclerView.ViewHolder {
         final LinearLayout rootLayout;
         boolean isInitialized = false;
 
@@ -207,9 +213,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         TextView starView;
         TextView statusView;
 
-        boolean wasSent = false;
-
-        MessageVH(LinearLayout root) {
+        BaseMessageVH(LinearLayout root) {
             super(root);
             rootLayout = root;
         }
@@ -220,19 +224,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             boolean isSent = model.isSentType();
             Context ctx = rootLayout.getContext();
-
-            // if (!isInitialized) {
-            // initViews(ctx, isSent, cfg, model.viewType);
-            // isInitialized = true;
-            // }
-
-            // NEW
-            if (!isInitialized || this.wasSent != isSent) {
-                this.wasSent = isSent;
-                rootLayout.removeAllViews();
-                initViews(ctx, isSent, cfg, model.viewType);
-                isInitialized = true;
-            }
 
             // ── Selection highlight ──────────────────────────────────────────
             if (model.isSelected) {
@@ -279,9 +270,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             // ── 1. Reply quote strip ─────────────────────────────────────────
             if (model.hasReply()) {
                 replyStrip.setVisibility(View.VISIBLE);
-                replySenderView.setText(model.replyToSender != null
-                        ? model.replyToSender
-                        : (model.replyToIsSent ? "You" : ""));
+                String sender = "";
+                if (model.replyToSender != null && !model.replyToSender.isEmpty()) {
+                    sender = model.replyToSender;
+                } else if (model.replyToIsSent) {
+                    sender = "You";
+                }
+                replySenderView.setText(sender);
                 String preview = model.replyToText != null ? model.replyToText : "";
                 if (preview.length() > 80)
                     preview = preview.substring(0, 80) + "…";
@@ -290,8 +285,11 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
                 final int replyId = model.replyToId;
                 replyStrip.setOnClickListener(v -> {
-                    if (cb != null)
+                    if (cb != null && model.messageId > 0 && cb.isMultiSelectionActive()) {
+                        cb.onMessageSelected(model.message, model.messageId);
+                    } else if (cb != null && replyId > 0) {
                         cb.onReplyQuoteTapped(replyId);
+                    }
                 });
             } else {
                 replyStrip.setVisibility(View.GONE);
@@ -368,21 +366,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 imgView.setVisibility(View.GONE);
             }
 
-            // Ordering image and text dynamically based on model.messageOnTop
-            // if (msgView.getVisibility() == View.VISIBLE && imgView.getVisibility() ==
-            // View.VISIBLE) {
-            // innerContent.removeView(msgView);
-            // innerContent.removeView(imgView);
-            // if (model.messageOnTop) {
-            // innerContent.addView(msgView);
-            // innerContent.addView(imgView);
-            // } else {
-            // innerContent.addView(imgView);
-            // innerContent.addView(msgView);
-            // }
-            // }
-
-            // NEW
+            // ── Ordering image and text dynamically ──────────────────────────
             if (msgView.getVisibility() == View.VISIBLE && imgView.getVisibility() == View.VISIBLE) {
                 int msgIndex = innerContent.indexOfChild(msgView);
                 int imgIndex = innerContent.indexOfChild(imgView);
@@ -503,6 +487,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             msgView.setOnClickListener(clickListener);
             replyStrip.setOnLongClickListener(longClickListener);
 
+            // Re-bind reply strip explicitly for tapped action
             replyStrip.setOnClickListener(v -> {
                 if (cb != null && msgId > 0 && cb.isMultiSelectionActive()) {
                     cb.onMessageSelected(msgText, msgId);
@@ -515,7 +500,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             rootLayout.setOnClickListener(clickListener);
         }
 
-        private void initViews(Context ctx, boolean isSent, ChatConfig cfg, int viewType) {
+        protected void initViews(Context ctx, boolean isSent, ChatConfig cfg, int viewType) {
             // Sender name setup
             nameView = new TextView(ctx);
             nameView.setTypeface(cfg.typeface != null ? cfg.typeface : Typeface.DEFAULT, Typeface.BOLD);
@@ -718,10 +703,26 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 contentRow.setGravity(Gravity.START);
             }
             rootLayout.addView(contentRow);
+
+            isInitialized = true;
         }
 
         private static int dpToPx(Context ctx, int dp) {
             return Math.round(dp * ctx.getResources().getDisplayMetrics().density);
+        }
+    }
+
+    static class SentMessageVH extends BaseMessageVH {
+        SentMessageVH(LinearLayout root, ChatConfig cfg, int viewType) {
+            super(root);
+            initViews(root.getContext(), true, cfg, viewType);
+        }
+    }
+
+    static class ReceivedMessageVH extends BaseMessageVH {
+        ReceivedMessageVH(LinearLayout root, ChatConfig cfg, int viewType) {
+            super(root);
+            initViews(root.getContext(), false, cfg, viewType);
         }
     }
 
@@ -741,8 +742,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private TextView createSystemMessageView() {
         TextView tv = new TextView(context);
-        // tv.setTextColor(config.systemMessageTextColor);
-        // tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, config.systemMessageFontSize);
         tv.setGravity(Gravity.CENTER);
         tv.setPadding(dpToPx(16), dpToPx(8), dpToPx(16), dpToPx(8));
         tv.setLayoutParams(new LinearLayout.LayoutParams(

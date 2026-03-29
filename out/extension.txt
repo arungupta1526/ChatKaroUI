@@ -7,10 +7,10 @@ ChatKaroUI — customizable chat component with text, images, reply, star, HTML/
 ## 📝 Specifications
 * **
 📦 **Package:** com.prem.chatkaroui
-💾 **Size:** 79.79 KB
+💾 **Size:** 80.50 KB
 ⚙️ **Version:** 3.2
 📱 **Minimum API Level:** 14
-📅 **Updated On:** [date=2026-03-29 timezone="Asia/Kolkata"]
+📅 **Updated On:** [date=2026-03-30 timezone="Asia/Kolkata"]
 🔗 **Help URL:** [Learn more](https://www.telegram.me/Arungupta1526)
 💻 **Built & documented using:** [FAST](https://community.appinventor.mit.edu/t/fast-an-efficient-way-to-build-publish-extensions/129103?u=jewel) <small><mark>v5.7.1</mark></small>
 
@@ -278,10 +278,13 @@ Send a message as a reply to another message (shows a quote strip).
 | Parameter | Type
 | - | - |
 | message | text
+| avatarUrl | text
+| senderName | text
 | timestamp | text
 | replyToId | number
 | replyToText | text
 | replyToSender | text
+| replyToIsSent | boolean
 
 ### 10. ReceiveReply
 Receive a message as a reply to another message (shows a quote strip).
@@ -295,6 +298,7 @@ Receive a message as a reply to another message (shows a quote strip).
 | replyToId | number
 | replyToText | text
 | replyToSender | text
+| replyToIsSent | boolean
 
 ### 11. AddSystemMessage
 Add a system message (e.g., 'User joined').

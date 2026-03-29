@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 
 import static android.graphics.Color.parseColor;
 
-@DesignerComponent(version = 3, versionName = "3.2.0", description = "ChatKaroUI — customizable chat component with text, images, reply, star, "
+@DesignerComponent(version = 3, versionName = "3.2", description = "ChatKaroUI — customizable chat component with text, images, reply, star, "
         +
         "HTML/Markdown, export/import and more. " +
         "Made by: Arun Gupta <br>" +
@@ -278,7 +278,8 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
             MessageModel m = messageList.get(adapterPos);
             if (m.messageId > 0) {
                 String preview = m.message != null ? m.message : "";
-                String replySender = m.isSentType() ? "You" : m.senderName;
+                String replySender = (m.senderName != null && !m.senderName.isEmpty()) ? m.senderName
+                        : (m.isSentType() ? "You" : "");
                 ReplyTriggered(m.messageId, preview, replySender, m.avatarUrl, m.isSentType());
             }
         });
@@ -474,32 +475,30 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
                 message, imageUrl, avatarUrl, receiverName, timestamp, messageOnTop));
     }
 
-    // ── Reply variants ───────────────────────────────────────────────────────
-
     @SimpleFunction(description = "Send a message as a reply to another message (shows a quote strip).")
-    public void SendReply(String message, String timestamp,
-            int replyToId, String replyToText, String replyToSender) {
+    public void SendReply(String message, String avatarUrl, String senderName, String timestamp,
+            int replyToId, String replyToText, String replyToSender, boolean replyToIsSent) {
         int id = nextMessageId++;
-        MessageModel m = new MessageModel(id, MessageModel.TYPE_SENT_SIMPLE,
-                message, "", "", timestamp);
+        MessageModel m = new MessageModel(id, MessageModel.TYPE_SENT_AVATAR,
+                message, avatarUrl, senderName, timestamp);
         m.replyToId = replyToId;
         m.replyToText = replyToText;
         m.replyToSender = replyToSender;
-        m.replyToIsSent = true;
+        m.replyToIsSent = replyToIsSent;
         addMessageInternal(m);
     }
 
     @SimpleFunction(description = "Receive a message as a reply to another message (shows a quote strip).")
     public void ReceiveReply(String message, String avatarUrl, String senderName,
             String timestamp, int replyToId, String replyToText,
-            String replyToSender) {
+            String replyToSender, boolean replyToIsSent) {
         int id = nextMessageId++;
         MessageModel m = new MessageModel(id, MessageModel.TYPE_RECEIVED_AVATAR,
                 message, avatarUrl, senderName, timestamp);
         m.replyToId = replyToId;
         m.replyToText = replyToText;
         m.replyToSender = replyToSender;
-        m.replyToIsSent = false;
+        m.replyToIsSent = replyToIsSent;
         addMessageInternal(m);
     }
 
@@ -1413,7 +1412,8 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
                     DeleteMessageById(messageId);
                     break;
                 case "Reply":
-                    String replySender = isSent ? "You" : senderName;
+                    String replySender = (senderName != null && !senderName.isEmpty()) ? senderName
+                            : (isSent ? "You" : "");
                     ReplyTriggered(messageId, message, replySender, avatarUrl, isSent);
                     break;
                 case "Forward":
