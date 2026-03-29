@@ -15,10 +15,10 @@ ChatKaroUI is a `customizable advance chat component extension` text, images, re
 👤 **Author:** Created by: [Prem_Gupta](https://community.appinventor.mit.edu/u/prem_gupta/summary) <br>
 📦 **Package:** com.prem.chatkaroui <br>
 💾 **Size:** 80 KB <br>
-⚙️ **Version:** 3.2.0 <br>
+⚙️ **Version:** 3.2 <br>
 📱 **Minimum API Level:** 14 <br>
 📅 **Built On:** [date=2025-09-02 timezone="Asia/Kolkata"] <br>
-📅 **Updated On:** [date=2026-03-29 timezone="Asia/Kolkata"] <br>
+📅 **Updated On:** [date=2026-03-30 timezone="Asia/Kolkata"] <br>
 🔗 **Help URL:** [Telegram](https://www.telegram.me/Arungupta1526) <br>
 💻 **Built & documented using:** [FAST](https://community.appinventor.mit.edu/t/fast-an-efficient-way-to-build-publish-extensions/129103?u=jewel) <small><mark>v5.7.1</mark></small> <br>
 ⬇️ **Aix:** [Download Link](./out/com.prem.chatkaroui.aix) <br>
@@ -292,26 +292,30 @@ Receive a message with both text and image.
 ### 9. SendReply
 Send a message as a reply to another message (shows a quote strip).
 
-| Parameter     | Type   |
-| ------------- | ------ |
-| message       | text   |
-| timestamp     | text   |
-| replyToId     | number |
-| replyToText   | text   |
-| replyToSender | text   |
+| Parameter     | Type    |
+| ------------- | ------- |
+| message       | text    |
+| avatarUrl     | text    |
+| senderName    | text    |
+| timestamp     | text    |
+| replyToId     | number  |
+| replyToText   | text    |
+| replyToSender | text    |
+| replyToIsSent | boolean |
 
 ### 10. ReceiveReply
 Receive a message as a reply to another message (shows a quote strip).
 
-| Parameter     | Type   |
-| ------------- | ------ |
-| message       | text   |
-| avatarUrl     | text   |
-| senderName    | text   |
-| timestamp     | text   |
-| replyToId     | number |
-| replyToText   | text   |
-| replyToSender | text   |
+| Parameter     | Type    |
+| ------------- | ------- |
+| message       | text    |
+| avatarUrl     | text    |
+| senderName    | text    |
+| timestamp     | text    |
+| replyToId     | number  |
+| replyToText   | text    |
+| replyToSender | text    |
+| replyToIsSent | boolean |
 
 ### 11. AddSystemMessage
 Add a system message (e.g., 'User joined').

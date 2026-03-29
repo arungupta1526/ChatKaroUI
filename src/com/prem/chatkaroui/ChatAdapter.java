@@ -24,7 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 /**
- * RecyclerView Adapter for ChatKaroUI v3.1.
+ * RecyclerView Adapter for ChatKaroUI v3.2.
  *
  * New in v3.1:
  * - Reply-quote bubble above message content
@@ -122,6 +122,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             case MessageModel.TYPE_RECEIVED_TEXT_IMAGE:
                 return new ReceivedMessageVH(createMessageRootView(), config, viewType);
             default:
+                // Default to Sent if unknown, but better to handle all
                 return new SentMessageVH(createMessageRootView(), config, viewType);
         }
     }
@@ -162,14 +163,10 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             tv = v;
         }
 
-        // void bind(MessageModel m) {
-        // tv.setText(m.message);
-        // }
-
         void bind(MessageModel m, ChatConfig cfg) {
             tv.setText(m.message);
             tv.setTextColor(cfg.systemMessageTextColor);
-            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.systemMessageFontSize);
+            tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, cfg.systemMessageFontSize);
         }
     }
 
@@ -186,45 +183,63 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
-    // ── Message ViewHolders (V3.3 Refactored) ───────────────────────────────────
+    // ── Message ViewHolder Hierarchy (v3.2 Performance shim for v3.2 Logic) ───
 
     static abstract class BaseMessageVH extends RecyclerView.ViewHolder {
-        protected final LinearLayout rootLayout;
-        protected TextView nameView;
-        protected ImageView avatarView;
-        protected LinearLayout contentRow;
-        protected LinearLayout bubbleWrapper;
-        protected LinearLayout innerContent;
-        protected LinearLayout replyStrip;
-        protected TextView replySenderView;
-        protected TextView replyPreviewView;
-        protected TextView msgView;
-        protected ImageView imgView;
-        protected LinearLayout previewCard;
-        protected TextView previewSiteView, previewTitleView, previewDescView;
-        protected LinearLayout metaRow;
-        protected TextView editedView, timeView, starView, statusView;
+        final LinearLayout rootLayout;
+        boolean isInitialized = false;
+
+        TextView nameView;
+        ImageView avatarView;
+        LinearLayout contentRow;
+        LinearLayout bubbleWrapper;
+        LinearLayout innerContent;
+
+        LinearLayout replyStrip;
+        TextView replySenderView;
+        TextView replyPreviewView;
+
+        TextView msgView;
+        ImageView imgView;
+
+        LinearLayout previewCard;
+        TextView previewSiteView;
+        TextView previewTitleView;
+        TextView previewDescView;
+
+        LinearLayout metaRow;
+        TextView editedView;
+        TextView timeView;
+        TextView starView;
+        TextView statusView;
 
         BaseMessageVH(LinearLayout root) {
             super(root);
-            this.rootLayout = root;
+            rootLayout = root;
         }
 
         @SuppressWarnings("deprecation")
-        void bind(MessageModel model, EventCallback cb, ImageLoader imageLoader, ChatConfig cfg) {
+        void bind(MessageModel model, EventCallback cb,
+                ImageLoader imageLoader, ChatConfig cfg) {
+
             boolean isSent = model.isSentType();
             Context ctx = rootLayout.getContext();
 
             // ── Selection highlight ──────────────────────────────────────────
-            rootLayout.setBackgroundColor(model.isSelected ? cfg.selectedMessageBgColor : 0x00000000);
+            if (model.isSelected) {
+                android.graphics.drawable.GradientDrawable sel = new android.graphics.drawable.GradientDrawable();
+                sel.setColor(cfg.selectedMessageBgColor);
+                rootLayout.setBackground(sel);
+            } else {
+                rootLayout.setBackground(null);
+            }
 
-            // ── Sender Name ──────────────────────────────────────────────────
+            // ── Sender name row ──────────────────────────────────────────────
             if (nameView != null) {
                 if (model.senderName != null && !model.senderName.isEmpty()) {
                     nameView.setVisibility(View.VISIBLE);
                     nameView.setText(model.senderName);
                     nameView.setTextColor(isSent ? cfg.sentNameTextColor : cfg.receivedNameTextColor);
-                    nameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.nameFontSize);
                 } else {
                     nameView.setVisibility(View.GONE);
                 }
@@ -238,28 +253,35 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     if (cb != null)
                         cb.onProfilePictureClicked(name, url);
                 });
-                imageLoader.loadCircular(avatarView, url, cfg.avatarSize);
+                imageLoader.loadCircular(avatarView, model.avatarUrl, cfg.avatarSize);
             }
 
-            // ── Bubble & Content ─────────────────────────────────────────────
-            boolean hasImage = (model.imageUrl != null && !model.imageUrl.isEmpty());
+            // ── Bubble background ─────────────────────────────────────────────
+            boolean hasImage = (model.viewType == MessageModel.TYPE_SENT_TEXT_IMAGE
+                    || model.viewType == MessageModel.TYPE_RECEIVED_TEXT_IMAGE)
+                    && model.imageUrl != null && !model.imageUrl.isEmpty();
+
             if (hasImage || cfg.showMetadataInsideBubble) {
                 innerContent.setBackground(cfg.createBubbleDrawable(isSent));
             } else {
                 innerContent.setBackground(null);
             }
 
-            // ── Reply Quote ──────────────────────────────────────────────────
+            // ── 1. Reply quote strip ─────────────────────────────────────────
             if (model.hasReply()) {
                 replyStrip.setVisibility(View.VISIBLE);
-                replySenderView.setText(
-                        model.replyToSender != null ? model.replyToSender : (model.replyToIsSent ? "You" : ""));
+                String sender = "";
+                if (model.replyToSender != null && !model.replyToSender.isEmpty()) {
+                    sender = model.replyToSender;
+                } else if (model.replyToIsSent) {
+                    sender = "You";
+                }
+                replySenderView.setText(sender);
                 String preview = model.replyToText != null ? model.replyToText : "";
                 if (preview.length() > 80)
                     preview = preview.substring(0, 80) + "…";
                 replyPreviewView.setText(preview);
                 replyPreviewView.setTextColor(cfg.replyPreviewTextColor);
-                replyStrip.setBackground(cfg.createReplyDrawable(isSent));
 
                 final int replyId = model.replyToId;
                 replyStrip.setOnClickListener(v -> {
@@ -273,175 +295,245 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 replyStrip.setVisibility(View.GONE);
             }
 
-            // ── Message Text & Styling ──────────────────────────────────────
+            // ── 2. Text view ─────────────────────────────────────────────────
             if (model.message != null && !model.message.isEmpty()) {
                 msgView.setVisibility(View.VISIBLE);
                 msgView.setTextColor(isSent ? cfg.sentMessageTextColor : cfg.receivedMessageTextColor);
 
-                int arrangementW = cfg.arrangementWidthPx > 0 ? cfg.arrangementWidthPx
+                // Recalculate max width for text
+                int arrangementW = cfg.arrangementWidthPx > 0
+                        ? cfg.arrangementWidthPx
                         : ctx.getResources().getDisplayMetrics().widthPixels;
                 int defaultMaxPx = (int) (arrangementW * 0.8f);
                 int maxWidthDp = hasImage ? cfg.imageMessageMaxWidth : cfg.textMessageMaxWidth;
-                int finalMaxPx = (cfg.useResponsiveWidth && maxWidthDp == 0) ? defaultMaxPx : dpToPx(ctx, maxWidthDp);
+                int finalMaxPx = (cfg.useResponsiveWidth && maxWidthDp == 0)
+                        ? defaultMaxPx
+                        : dpToPx(ctx, maxWidthDp);
                 msgView.setMaxWidth(finalMaxPx);
 
                 if (cfg.markdownEnabledInChat) {
                     msgView.setText(MarkdownParser.parse(model.message));
-                    msgView.setMovementMethod(LinkMovementMethod.getInstance());
+                    msgView.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
                 } else if (cfg.htmlEnabledInChat) {
-                    msgView.setText(
-                            Build.VERSION.SDK_INT >= 24 ? Html.fromHtml(model.message, Html.FROM_HTML_MODE_COMPACT)
-                                    : Html.fromHtml(model.message));
-                    msgView.setMovementMethod(LinkMovementMethod.getInstance());
+                    CharSequence html;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        html = android.text.Html.fromHtml(model.message, android.text.Html.FROM_HTML_MODE_COMPACT);
+                    } else {
+                        html = android.text.Html.fromHtml(model.message);
+                    }
+                    msgView.setText(html);
+                    msgView.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
                 } else {
                     msgView.setText(model.message);
                     if (cfg.autoLinkEnabledInChat) {
-                        Linkify.addLinks(msgView, Linkify.WEB_URLS | Linkify.EMAIL_ADDRESSES);
-                        Linkify.addLinks(msgView, java.util.regex.Pattern.compile("\\b\\d{10,}\\b"), "tel:");
-                        msgView.setMovementMethod(LinkMovementMethod.getInstance());
+                        android.text.util.Linkify.addLinks(msgView,
+                                android.text.util.Linkify.WEB_URLS | android.text.util.Linkify.EMAIL_ADDRESSES);
+                        java.util.regex.Pattern phone = java.util.regex.Pattern.compile("\\b\\d{10,}\\b");
+                        java.util.regex.Matcher mat = phone.matcher(model.message);
+                        if (mat.find())
+                            android.text.util.Linkify.addLinks(msgView, phone, "tel:");
+                        msgView.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
                     }
                 }
-                msgView.setBackground(!hasImage && cfg.showMetadataOutBubble ? cfg.createBubbleDrawable(isSent) : null);
+
+                if (!hasImage && cfg.showMetadataOutBubble) {
+                    msgView.setBackground(cfg.createBubbleDrawable(isSent));
+                } else {
+                    msgView.setBackground(null);
+                }
             } else {
                 msgView.setVisibility(View.GONE);
             }
 
-            // ── Image Layout ─────────────────────────────────────────────────
+            // ── 3. Image view ────────────────────────────────────────────────
             if (hasImage) {
                 imgView.setVisibility(View.VISIBLE);
                 imageLoader.loadWithPlaceholder(imgView, model.imageUrl, cfg.imageMessageMaxWidth);
+
                 final String imgUrl = model.imageUrl;
                 final int msgId = model.messageId;
                 imgView.setOnClickListener(v -> {
-                    if (imgView.getDrawable() != null && cb != null)
-                        cb.showFullscreenImage(imgView.getDrawable());
+                    android.graphics.drawable.Drawable d = imgView.getDrawable();
+                    if (d != null && cb != null)
+                        cb.showFullscreenImage(d);
                 });
                 imgView.setOnLongClickListener(v -> {
                     if (cb != null)
                         cb.showImageOptionsMenu(v, imgUrl, imgView, msgId);
                     return true;
                 });
-
-                // Text vs Image Ordering
-                if (msgView.getVisibility() == View.VISIBLE) {
-                    int msgIdx = innerContent.indexOfChild(msgView);
-                    int imgIdx = innerContent.indexOfChild(imgView);
-                    boolean needsSwap = model.messageOnTop ? (msgIdx > imgIdx) : (imgIdx > msgIdx);
-                    if (needsSwap) {
-                        innerContent.removeView(msgView);
-                        innerContent.removeView(imgView);
-                        if (model.messageOnTop) {
-                            innerContent.addView(msgView);
-                            innerContent.addView(imgView);
-                        } else {
-                            innerContent.addView(imgView);
-                            innerContent.addView(msgView);
-                        }
-                    }
-                }
             } else {
                 imgView.setVisibility(View.GONE);
             }
 
-            // ── Link Preview ─────────────────────────────────────────────────
+            // ── Ordering image and text dynamically ──────────────────────────
+            if (msgView.getVisibility() == View.VISIBLE && imgView.getVisibility() == View.VISIBLE) {
+                int msgIndex = innerContent.indexOfChild(msgView);
+                int imgIndex = innerContent.indexOfChild(imgView);
+                boolean needsReorder = model.messageOnTop ? (msgIndex > imgIndex) : (imgIndex > msgIndex);
+                if (needsReorder) {
+                    innerContent.removeView(msgView);
+                    innerContent.removeView(imgView);
+                    if (model.messageOnTop) {
+                        innerContent.addView(msgView);
+                        innerContent.addView(imgView);
+                    } else {
+                        innerContent.addView(imgView);
+                        innerContent.addView(msgView);
+                    }
+                }
+            }
+
+            // ── 4. Link preview card ─────────────────────────────────────────
             if (cfg.linkPreviewEnabled && model.hasLinkPreview()) {
                 previewCard.setVisibility(View.VISIBLE);
-                previewSiteView.setText(model.previewSiteName);
-                previewSiteView.setVisibility(model.previewSiteName.isEmpty() ? View.GONE : View.VISIBLE);
-                previewTitleView.setText(model.previewTitle);
-                previewTitleView.setVisibility(model.previewTitle.isEmpty() ? View.GONE : View.VISIBLE);
-                previewDescView.setText(model.previewDescription);
-                previewDescView.setVisibility(model.previewDescription.isEmpty() ? View.GONE : View.VISIBLE);
-                previewCard.setBackground(cfg.createLinkPreviewDrawable());
+                if (model.previewSiteName != null && !model.previewSiteName.isEmpty()) {
+                    previewSiteView.setVisibility(View.VISIBLE);
+                    previewSiteView.setText(model.previewSiteName);
+                } else {
+                    previewSiteView.setVisibility(View.GONE);
+                }
+                if (model.previewTitle != null && !model.previewTitle.isEmpty()) {
+                    previewTitleView.setVisibility(View.VISIBLE);
+                    previewTitleView.setText(model.previewTitle);
+                } else {
+                    previewTitleView.setVisibility(View.GONE);
+                }
+                if (model.previewDescription != null && !model.previewDescription.isEmpty()) {
+                    previewDescView.setVisibility(View.VISIBLE);
+                    previewDescView.setText(model.previewDescription);
+                } else {
+                    previewDescView.setVisibility(View.GONE);
+                }
             } else {
                 previewCard.setVisibility(View.GONE);
             }
 
-            // ── Metadata Row ──────────────────────────────────────────────────
-            editedView.setVisibility(cfg.showEditedLabel && model.isEdited ? View.VISIBLE : View.GONE);
-            editedView.setText(cfg.editedLabelText);
-            timeView.setVisibility(
-                    cfg.showTimestamp && model.timestamp != null && !model.timestamp.isEmpty() ? View.VISIBLE
-                            : View.GONE);
-            timeView.setText(model.timestamp);
-            starView.setVisibility(model.isStarred ? View.VISIBLE : View.GONE);
-            starView.setText(cfg.starredIndicatorText);
-            starView.setTextColor(cfg.starredIndicatorColor);
-            statusView.setVisibility(cfg.showReadStatus ? View.VISIBLE : View.GONE);
-            statusView.setText(isSent ? cfg.sentStatusText : cfg.receivedStatusText);
-            statusView.setTextColor(isSent ? cfg.sentStatusTextColor : cfg.receivedStatusTextColor);
-
-            // Re-parent Metadata Row if needed
-            ViewGroup currentMetaParent = (ViewGroup) metaRow.getParent();
-            ViewGroup targetMetaParent = cfg.showMetadataInsideBubble ? innerContent : bubbleWrapper;
-            if (currentMetaParent != targetMetaParent) {
-                if (currentMetaParent != null)
-                    currentMetaParent.removeView(metaRow);
-                targetMetaParent.addView(metaRow);
+            // ── 5. Metadata row ──────────────────────────────────────────────
+            if (cfg.showEditedLabel && model.isEdited) {
+                editedView.setVisibility(View.VISIBLE);
+                editedView.setText(cfg.editedLabelText != null ? cfg.editedLabelText : "edited");
+            } else {
+                editedView.setVisibility(View.GONE);
             }
+
+            if (cfg.showTimestamp && model.timestamp != null && !model.timestamp.isEmpty()) {
+                timeView.setVisibility(View.VISIBLE);
+                timeView.setText(model.timestamp);
+                timeView.setTextColor(cfg.timestampTextColor);
+            } else {
+                timeView.setVisibility(View.GONE);
+            }
+
+            if (model.isStarred) {
+                starView.setVisibility(View.VISIBLE);
+                starView.setText(cfg.starredIndicatorText != null ? cfg.starredIndicatorText : "★");
+                starView.setTextColor(cfg.starredIndicatorColor);
+            } else {
+                starView.setVisibility(View.GONE);
+            }
+
+            if (cfg.showReadStatus) {
+                statusView.setVisibility(View.VISIBLE);
+                statusView.setText(isSent ? cfg.sentStatusText : cfg.receivedStatusText);
+                statusView.setTextColor(isSent ? cfg.sentStatusTextColor : cfg.receivedStatusTextColor);
+            } else {
+                statusView.setVisibility(View.GONE);
+            }
+
+            // Check where metadata row resides
+            ViewGroup metaParent = (ViewGroup) metaRow.getParent();
+            ViewGroup targetParent = cfg.showMetadataInsideBubble ? innerContent : bubbleWrapper;
+            if (metaParent != targetParent) {
+                if (metaParent != null)
+                    metaParent.removeView(metaRow);
+                targetParent.addView(metaRow);
+            }
+
             if (cfg.showMetadataInsideBubble) {
-                LinearLayout.LayoutParams mlp = (LinearLayout.LayoutParams) metaRow.getLayoutParams();
-                mlp.gravity = isSent ? Gravity.END : Gravity.START;
-                metaRow.setLayoutParams(mlp);
+                LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) metaRow.getLayoutParams();
+                lp.gravity = isSent ? Gravity.END : Gravity.START;
+                metaRow.setLayoutParams(lp);
             }
 
-            // ── Interaction Listeners ─────────────────────────────────────────
+            // ── Long-click / click listeners ─────────────────────────────────
             final String msgText = model.message != null ? model.message : "";
-            final int mId = model.messageId;
+            final int msgId = model.messageId;
             final boolean starred = model.isStarred;
 
-            View.OnLongClickListener lc = v -> {
-                if (cb != null && mId > 0) {
-                    cb.onMessageSelected(msgText, mId);
-                    if (!cb.isMultiSelectionActive()) {
-                        v.post(() -> cb.showTextOptionsMenu(innerContent, msgText, mId, isSent, starred,
+            View.OnLongClickListener longClickListener = v -> {
+                if (cb != null && msgId > 0) {
+                    if (cb.isMultiSelectionActive()) {
+                        cb.onMessageSelected(msgText, msgId);
+                    } else {
+                        cb.onMessageSelected(msgText, msgId);
+                        v.post(() -> cb.showTextOptionsMenu(innerContent, msgText, msgId, isSent, starred,
                                 model.senderName, model.avatarUrl));
                     }
                 }
                 return true;
             };
-            View.OnClickListener cl = v -> {
-                if (cb != null && mId > 0 && cb.isMultiSelectionActive())
-                    cb.onMessageSelected(msgText, mId);
+
+            View.OnClickListener clickListener = v -> {
+                if (cb != null && msgId > 0 && cb.isMultiSelectionActive())
+                    cb.onMessageSelected(msgText, msgId);
             };
 
-            innerContent.setOnLongClickListener(lc);
-            innerContent.setOnClickListener(cl);
-            bubbleWrapper.setOnLongClickListener(lc);
-            bubbleWrapper.setOnClickListener(cl);
-            msgView.setOnLongClickListener(lc);
-            msgView.setOnClickListener(cl);
-            rootLayout.setOnLongClickListener(lc);
-            rootLayout.setOnClickListener(cl);
+            innerContent.setOnLongClickListener(longClickListener);
+            innerContent.setOnClickListener(clickListener);
+            bubbleWrapper.setOnLongClickListener(longClickListener);
+            bubbleWrapper.setOnClickListener(clickListener);
+            msgView.setOnLongClickListener(longClickListener);
+            msgView.setOnClickListener(clickListener);
+            replyStrip.setOnLongClickListener(longClickListener);
+
+            // Re-bind reply strip explicitly for tapped action
+            replyStrip.setOnClickListener(v -> {
+                if (cb != null && msgId > 0 && cb.isMultiSelectionActive()) {
+                    cb.onMessageSelected(msgText, msgId);
+                } else if (cb != null && model.replyToId > 0) {
+                    cb.onReplyQuoteTapped(model.replyToId);
+                }
+            });
+
+            rootLayout.setOnLongClickListener(longClickListener);
+            rootLayout.setOnClickListener(clickListener);
         }
 
-        protected void initSkeleton(Context ctx, ChatConfig cfg, int viewType, boolean isSent) {
-            // Skeleton Creation (Fixed properties only)
+        protected void initViews(Context ctx, boolean isSent, ChatConfig cfg, int viewType) {
+            // Sender name setup
             nameView = new TextView(ctx);
-            nameView.setTypeface(null, Typeface.BOLD);
+            nameView.setTypeface(cfg.typeface != null ? cfg.typeface : Typeface.DEFAULT, Typeface.BOLD);
+            nameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.nameFontSize);
             nameView.setGravity(isSent ? Gravity.END : Gravity.START);
+            nameView.setPadding(dpToPx(ctx, isSent ? 0 : cfg.avatarSize / 2 + 8), 0,
+                    dpToPx(ctx, isSent ? cfg.avatarSize / 2 + 8 : 0), 0);
             rootLayout.addView(nameView);
 
+            // Content row & Avatar
             contentRow = new LinearLayout(ctx);
             contentRow.setOrientation(LinearLayout.HORIZONTAL);
             contentRow.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT));
-            contentRow.setGravity(isSent ? Gravity.END : Gravity.START);
 
-            boolean hasAvatarPool = viewType != MessageModel.TYPE_SENT_SIMPLE
-                    && viewType != MessageModel.TYPE_RECEIVED_SIMPLE;
-            if (hasAvatarPool) {
+            boolean hasAvatar = viewType == MessageModel.TYPE_SENT_AVATAR
+                    || viewType == MessageModel.TYPE_RECEIVED_AVATAR
+                    || viewType == MessageModel.TYPE_SENT_TEXT_IMAGE
+                    || viewType == MessageModel.TYPE_RECEIVED_TEXT_IMAGE;
+
+            if (hasAvatar) {
                 avatarView = new ImageView(ctx);
-                int avPx = dpToPx(ctx, cfg.avatarSize);
-                LinearLayout.LayoutParams avp = new LinearLayout.LayoutParams(avPx, avPx);
+                int avatarPx = dpToPx(ctx, cfg.avatarSize);
+                LinearLayout.LayoutParams avp = new LinearLayout.LayoutParams(avatarPx, avatarPx);
                 avp.setMargins(dpToPx(ctx, isSent ? 0 : 8), 0, dpToPx(ctx, isSent ? 8 : 0), 0);
                 avatarView.setLayoutParams(avp);
-                GradientDrawable circle = new GradientDrawable();
-                circle.setShape(GradientDrawable.OVAL);
+                android.graphics.drawable.GradientDrawable circle = new android.graphics.drawable.GradientDrawable();
+                circle.setShape(android.graphics.drawable.GradientDrawable.OVAL);
                 circle.setColor(cfg.avatarBackgroundColor);
                 avatarView.setBackground(circle);
             }
 
+            // Bubble wrapper
             bubbleWrapper = new LinearLayout(ctx);
             bubbleWrapper.setOrientation(LinearLayout.VERTICAL);
             bubbleWrapper.setGravity(isSent ? Gravity.END : Gravity.START);
@@ -455,58 +547,115 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             innerContent.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT));
 
-            // Reply Quote
+            int arrangementW = cfg.arrangementWidthPx > 0 ? cfg.arrangementWidthPx
+                    : ctx.getResources().getDisplayMetrics().widthPixels;
+            int defaultMaxPx = (int) (arrangementW * 0.8f);
+            int maxWidthDp = cfg.textMessageMaxWidth;
+            int pmaxPx = (cfg.useResponsiveWidth && maxWidthDp == 0) ? defaultMaxPx : dpToPx(ctx, maxWidthDp);
+
+            // Reply Strip
             replyStrip = new LinearLayout(ctx);
             replyStrip.setOrientation(LinearLayout.HORIZONTAL);
+            LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            sp.setMargins(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, 6),
+                    dpToPx(ctx, cfg.messageHorizontalPadding), 0);
+            replyStrip.setLayoutParams(sp);
+            replyStrip.setBackground(cfg.createReplyDrawable(isSent));
             replyStrip.setPadding(0, dpToPx(ctx, 4), dpToPx(ctx, 8), dpToPx(ctx, 4));
+
             View accent = new View(ctx);
-            accent.setLayoutParams(new LinearLayout.LayoutParams(dpToPx(ctx, 3), ViewGroup.LayoutParams.MATCH_PARENT));
+            LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(dpToPx(ctx, 3),
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+            ap.setMargins(0, 0, dpToPx(ctx, 8), 0);
+            accent.setLayoutParams(ap);
             accent.setBackgroundColor(cfg.replyAccentColor);
             replyStrip.addView(accent);
+
             LinearLayout textCol = new LinearLayout(ctx);
             textCol.setOrientation(LinearLayout.VERTICAL);
+            textCol.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
             replySenderView = new TextView(ctx);
+            replySenderView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.nameFontSize);
             replySenderView.setTypeface(null, Typeface.BOLD);
             replySenderView.setTextColor(cfg.replyAccentColor);
+            replySenderView.setMaxWidth(pmaxPx - dpToPx(ctx, 30));
+            replySenderView.setEllipsize(android.text.TextUtils.TruncateAt.END);
             replySenderView.setSingleLine(true);
-            replyPreviewView = new TextView(ctx);
-            replyPreviewView.setMaxLines(2);
             textCol.addView(replySenderView);
+
+            replyPreviewView = new TextView(ctx);
+            replyPreviewView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.messageFontSize - 2);
+            replyPreviewView.setMaxLines(2);
+            replyPreviewView.setMaxWidth(pmaxPx - dpToPx(ctx, 30));
+            replyPreviewView.setEllipsize(android.text.TextUtils.TruncateAt.END);
             textCol.addView(replyPreviewView);
             replyStrip.addView(textCol);
             innerContent.addView(replyStrip);
 
+            // Message text
             msgView = new TextView(ctx);
+            msgView.setTypeface(cfg.typeface != null ? cfg.typeface : Typeface.DEFAULT);
+            msgView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.messageFontSize);
             msgView.setPadding(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding),
                     dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding));
-            if (Build.VERSION.SDK_INT >= 23)
-                msgView.setBreakStrategy(Layout.BREAK_STRATEGY_SIMPLE);
+            msgView.setSingleLine(false);
+            msgView.setHorizontallyScrolling(false);
+            msgView.setMaxWidth(pmaxPx);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                msgView.setBreakStrategy(android.text.Layout.BREAK_STRATEGY_SIMPLE);
+            }
+            msgView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
             innerContent.addView(msgView);
 
+            // Message image
             imgView = new ImageView(ctx);
             imgView.setPadding(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding),
                     dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding));
+            int maxImgPx = dpToPx(ctx, cfg.imageMessageMaxWidth);
+            LinearLayout.LayoutParams imgp = new LinearLayout.LayoutParams(maxImgPx,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            imgp.gravity = Gravity.CENTER;
+            imgView.setLayoutParams(imgp);
             imgView.setAdjustViewBounds(true);
             imgView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             innerContent.addView(imgView);
 
-            // Preview Card
+            // Link Preview Card
             previewCard = new LinearLayout(ctx);
             previewCard.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(pmaxPx, ViewGroup.LayoutParams.WRAP_CONTENT);
+            cp.setMargins(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, 4),
+                    dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding));
+            previewCard.setLayoutParams(cp);
+            previewCard.setBackground(cfg.createLinkPreviewDrawable());
             previewCard.setPadding(dpToPx(ctx, 10), dpToPx(ctx, 8), dpToPx(ctx, 10), dpToPx(ctx, 8));
+
             View topBar = new View(ctx);
             topBar.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(ctx, 3)));
             topBar.setBackgroundColor(cfg.linkPreviewAccentColor);
             previewCard.addView(topBar);
+
             previewSiteView = new TextView(ctx);
+            previewSiteView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.nameFontSize);
+            previewSiteView.setTextColor(cfg.linkPreviewAccentColor);
             previewSiteView.setTypeface(null, Typeface.BOLD);
+            previewSiteView.setPadding(0, dpToPx(ctx, 4), 0, 0);
             previewCard.addView(previewSiteView);
+
             previewTitleView = new TextView(ctx);
+            previewTitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.messageFontSize - 1);
             previewTitleView.setTypeface(null, Typeface.BOLD);
-            previewTitleView.setTextColor(Color.BLACK);
+            previewTitleView.setTextColor(android.graphics.Color.BLACK);
+            previewTitleView.setMaxLines(2);
             previewCard.addView(previewTitleView);
+
             previewDescView = new TextView(ctx);
-            previewDescView.setTextColor(Color.GRAY);
+            previewDescView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.messageFontSize - 3);
+            previewDescView.setTextColor(android.graphics.Color.GRAY);
+            previewDescView.setMaxLines(3);
             previewCard.addView(previewDescView);
             innerContent.addView(previewCard);
 
@@ -515,32 +664,50 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             // Metadata Row
             metaRow = new LinearLayout(ctx);
             metaRow.setOrientation(LinearLayout.HORIZONTAL);
+            metaRow.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
             metaRow.setGravity(isSent ? Gravity.END : Gravity.START);
+
             editedView = new TextView(ctx);
+            editedView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.timestampFontSize - 1);
+            editedView.setTextColor(cfg.editedLabelColor);
             editedView.setTypeface(null, Typeface.ITALIC);
+            editedView.setPadding(dpToPx(ctx, 4), dpToPx(ctx, 2), dpToPx(ctx, 4), dpToPx(ctx, 2));
             metaRow.addView(editedView);
+
             timeView = new TextView(ctx);
+            timeView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.timestampFontSize);
+            timeView.setPadding(dpToPx(ctx, 8), dpToPx(ctx, 2), dpToPx(ctx, 4), dpToPx(ctx, 2));
             metaRow.addView(timeView);
+
             starView = new TextView(ctx);
+            starView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.timestampFontSize);
+            starView.setPadding(dpToPx(ctx, 2), dpToPx(ctx, 2), dpToPx(ctx, 4), dpToPx(ctx, 2));
             metaRow.addView(starView);
+
             statusView = new TextView(ctx);
-            statusView.setTextSize(12);
+            statusView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+            statusView.setPadding(dpToPx(ctx, 4), dpToPx(ctx, 2), dpToPx(ctx, 8), dpToPx(ctx, 2));
             metaRow.addView(statusView);
 
-            // Assemble into Content Row
+            // Assemble row
             if (isSent) {
                 contentRow.addView(bubbleWrapper);
                 if (avatarView != null)
                     contentRow.addView(avatarView);
+                contentRow.setGravity(Gravity.END);
             } else {
                 if (avatarView != null)
                     contentRow.addView(avatarView);
                 contentRow.addView(bubbleWrapper);
+                contentRow.setGravity(Gravity.START);
             }
             rootLayout.addView(contentRow);
+
+            isInitialized = true;
         }
 
-        protected static int dpToPx(Context ctx, float dp) {
+        private static int dpToPx(Context ctx, int dp) {
             return Math.round(dp * ctx.getResources().getDisplayMetrics().density);
         }
     }
@@ -548,14 +715,14 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     static class SentMessageVH extends BaseMessageVH {
         SentMessageVH(LinearLayout root, ChatConfig cfg, int viewType) {
             super(root);
-            initSkeleton(root.getContext(), cfg, viewType, true);
+            initViews(root.getContext(), true, cfg, viewType);
         }
     }
 
     static class ReceivedMessageVH extends BaseMessageVH {
         ReceivedMessageVH(LinearLayout root, ChatConfig cfg, int viewType) {
             super(root);
-            initSkeleton(root.getContext(), cfg, viewType, false);
+            initViews(root.getContext(), false, cfg, viewType);
         }
     }
 
