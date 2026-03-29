@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 
 import static android.graphics.Color.parseColor;
 
-@DesignerComponent(version = 3, versionName = "3.0", description = "ChatKaroUI — customizable chat component with text, images, reply, star, "
+@DesignerComponent(version = 3, versionName = "3.1", description = "ChatKaroUI — customizable chat component with text, images, reply, star, "
         +
         "HTML/Markdown, export/import and more. " +
         "Made by: Arun Gupta <br>" +
@@ -107,7 +107,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
     private int receivedMessageTextColor = Color.BLACK;
     private int sentNameTextColor = Color.BLACK;
     private int receivedNameTextColor = Color.BLACK;
-    private int selectedMessageBgColor = parseColor("#add9b5");
+    private int selectedMessageBgColor = 0x8CF9D3FF;
     private int timestampTextColor = Color.GRAY;
     private int sentStatusTextColor = Color.BLUE;
     private int receivedStatusTextColor = Color.MAGENTA;
@@ -514,38 +514,103 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
 
     // ── Internal add ─────────────────────────────────────────────────────────
 
+    // private void addMessageInternal(MessageModel model) {
+    // uiHandler.post(() -> {
+    // // Date header
+    // if (model.messageId > 0) {
+    // String date = extractDateFrom(model.timestamp);
+    // if (!date.equals(lastMessageDate)) {
+    // messageList.add(new MessageModel(MessageModel.TYPE_DATE_HEADER,
+    // formatDateReadable(date)));
+    // if (chatAdapter != null)
+    // chatAdapter.notifyItemInserted(messageList.size() - 1);
+    // lastMessageDate = date;
+    // }
+    // }
+
+    // // Track
+    // if (model.messageId > 0) {
+    // messageTextsById.put(model.messageId,
+    // model.message != null ? model.message : "");
+    // messageSentFlagsById.put(model.messageId, model.isSentType());
+    // }
+
+    // messageList.add(model);
+    // int pos = messageList.size() - 1;
+    // if (model.messageId > 0)
+    // messagePositionById.put(model.messageId, pos);
+    // if (chatAdapter != null)
+    // chatAdapter.notifyItemInserted(pos);
+    // scrollToBottom();
+
+    // // Async link preview
+    // if (linkPreviewEnabled && model.messageId > 0
+    // && model.message != null && !model.message.isEmpty()) {
+    // String firstUrl = extractFirstUrl(model.message);
+    // if (firstUrl != null)
+    // fetchLinkPreview(firstUrl, model.messageId);
+    // }
+    // });
+    // }
+
     private void addMessageInternal(MessageModel model) {
         uiHandler.post(() -> {
-            // Date header
-            if (model.messageId > 0) {
+            // ── Date header ──────────────────────────────────────────────────────
+            if (model.messageId > 0 && model.timestamp != null && !model.timestamp.isEmpty()) {
                 String date = extractDateFrom(model.timestamp);
                 if (!date.equals(lastMessageDate)) {
-                    messageList.add(new MessageModel(MessageModel.TYPE_DATE_HEADER,
-                            formatDateReadable(date)));
+                    MessageModel header = new MessageModel(
+                            MessageModel.TYPE_DATE_HEADER, formatDateReadable(date));
+                    messageList.add(header);
                     if (chatAdapter != null)
                         chatAdapter.notifyItemInserted(messageList.size() - 1);
                     lastMessageDate = date;
                 }
             }
 
-            // Track
+            // ── Register in lookup maps ──────────────────────────────────────────
             if (model.messageId > 0) {
                 messageTextsById.put(model.messageId,
                         model.message != null ? model.message : "");
                 messageSentFlagsById.put(model.messageId, model.isSentType());
             }
 
-            messageList.add(model);
-            int pos = messageList.size() - 1;
+            // ── Insert ───────────────────────────────────────────────────────────
+            // Always insert BEFORE the typing indicator so the indicator stays last
+            int insertPos;
+            if (typingIndicatorPosition >= 0
+                    && typingIndicatorPosition < messageList.size()) {
+                insertPos = typingIndicatorPosition;
+                // Shift the typing indicator index forward
+                typingIndicatorPosition++;
+            } else {
+                insertPos = messageList.size();
+            }
+
+            messageList.add(insertPos, model);
+
             if (model.messageId > 0)
-                messagePositionById.put(model.messageId, pos);
+                messagePositionById.put(model.messageId, insertPos);
+
             if (chatAdapter != null)
-                chatAdapter.notifyItemInserted(pos);
+                chatAdapter.notifyItemInserted(insertPos);
+
+            // Invalidate cached positions for everything after insertPos
+            // (only positions > insertPos are stale; rebuild is cheap for typical chat
+            // sizes)
+            for (int i = insertPos + 1; i < messageList.size(); i++) {
+                MessageModel m = messageList.get(i);
+                if (m.messageId > 0)
+                    messagePositionById.put(m.messageId, i);
+            }
+
             scrollToBottom();
 
-            // Async link preview
-            if (linkPreviewEnabled && model.messageId > 0
-                    && model.message != null && !model.message.isEmpty()) {
+            // ── Async link preview ────────────────────────────────────────────────
+            if (linkPreviewEnabled
+                    && model.messageId > 0
+                    && model.message != null
+                    && !model.message.isEmpty()) {
                 String firstUrl = extractFirstUrl(model.message);
                 if (firstUrl != null)
                     fetchLinkPreview(firstUrl, model.messageId);
@@ -801,52 +866,164 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
         });
     }
 
+    // @SimpleFunction(description = "Load a previously exported JSON string and
+    // restore all messages.")
+    // public void ImportChatFromJson(String json) {
+    // try {
+    // ClearAllMessages();
+    // JSONArray arr = new JSONArray(json);
+    // // Post after clear settles
+    // uiHandler.postDelayed(() -> {
+    // try {
+    // for (int i = 0; i < arr.length(); i++) {
+    // JSONObject obj = arr.getJSONObject(i);
+    // int type = obj.getInt("type");
+    // String msg = obj.optString("message", "");
+    // String imgUrl = obj.optString("imageUrl", "");
+    // String avUrl = obj.optString("avatarUrl", "");
+    // String sender = obj.optString("senderName", "");
+    // String ts = obj.optString("timestamp", "");
+    // boolean onTop = obj.optBoolean("messageOnTop", true);
+
+    // MessageModel m;
+    // if (type == MessageModel.TYPE_SENT_TEXT_IMAGE
+    // || type == MessageModel.TYPE_RECEIVED_TEXT_IMAGE) {
+    // m = new MessageModel(nextMessageId++, type,
+    // msg, imgUrl, avUrl, sender, ts, onTop);
+    // } else {
+    // m = new MessageModel(nextMessageId++, type,
+    // msg, avUrl, sender, ts);
+    // }
+    // m.isStarred = obj.optBoolean("isStarred", false);
+    // m.isEdited = obj.optBoolean("isEdited", false);
+    // m.replyToId = obj.optInt("replyToId", 0);
+    // m.replyToText = obj.optString("replyToText", "");
+    // m.replyToSender = obj.optString("replyToSender", "");
+    // m.replyToIsSent = obj.optBoolean("replyToIsSent", false);
+    // if (m.isStarred)
+    // starredMessageIds.add(m.messageId);
+
+    // addMessageInternal(m);
+    // }
+    // ImportCompleted(arr.length());
+    // } catch (Exception e) {
+    // ImportFailed(e.getMessage());
+    // }
+    // }, 300);
+    // } catch (Exception e) {
+    // ImportFailed(e.getMessage());
+    // }
+    // }
+
     @SimpleFunction(description = "Load a previously exported JSON string and restore all messages.")
     public void ImportChatFromJson(String json) {
-        try {
-            ClearAllMessages();
-            JSONArray arr = new JSONArray(json);
-            // Post after clear settles
-            uiHandler.postDelayed(() -> {
-                try {
-                    for (int i = 0; i < arr.length(); i++) {
-                        JSONObject obj = arr.getJSONObject(i);
-                        int type = obj.getInt("type");
-                        String msg = obj.optString("message", "");
-                        String imgUrl = obj.optString("imageUrl", "");
-                        String avUrl = obj.optString("avatarUrl", "");
-                        String sender = obj.optString("senderName", "");
-                        String ts = obj.optString("timestamp", "");
-                        boolean onTop = obj.optBoolean("messageOnTop", true);
-
-                        MessageModel m;
-                        if (type == MessageModel.TYPE_SENT_TEXT_IMAGE
-                                || type == MessageModel.TYPE_RECEIVED_TEXT_IMAGE) {
-                            m = new MessageModel(nextMessageId++, type,
-                                    msg, imgUrl, avUrl, sender, ts, onTop);
-                        } else {
-                            m = new MessageModel(nextMessageId++, type,
-                                    msg, avUrl, sender, ts);
-                        }
-                        m.isStarred = obj.optBoolean("isStarred", false);
-                        m.isEdited = obj.optBoolean("isEdited", false);
-                        m.replyToId = obj.optInt("replyToId", 0);
-                        m.replyToText = obj.optString("replyToText", "");
-                        m.replyToSender = obj.optString("replyToSender", "");
-                        m.replyToIsSent = obj.optBoolean("replyToIsSent", false);
-                        if (m.isStarred)
-                            starredMessageIds.add(m.messageId);
-
-                        addMessageInternal(m);
-                    }
-                    ImportCompleted(arr.length());
-                } catch (Exception e) {
-                    ImportFailed(e.getMessage());
-                }
-            }, 300);
-        } catch (Exception e) {
-            ImportFailed(e.getMessage());
+        if (json == null || json.trim().isEmpty()) {
+            ImportFailed("JSON string is empty.");
+            return;
         }
+
+        // Parse eagerly on the calling thread so we can surface syntax errors fast
+        final JSONArray arr;
+        try {
+            arr = new JSONArray(json);
+        } catch (Exception e) {
+            ImportFailed("Invalid JSON: " + e.getMessage());
+            return;
+        }
+
+        // Clear synchronously, then restore after the clear settles on the UI thread
+        ClearAllMessages();
+
+        uiHandler.postDelayed(() -> {
+            try {
+                // ── Pre-scan: find the max original ID so nextMessageId never collides ──
+                int maxOriginalId = 0;
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject obj = arr.optJSONObject(i);
+                    if (obj != null) {
+                        int oid = obj.optInt("id", 0);
+                        if (oid > maxOriginalId)
+                            maxOriginalId = oid;
+                    }
+                }
+                // Reserve space above all original IDs
+                nextMessageId = Math.max(nextMessageId, maxOriginalId + 1);
+
+                int restoredCount = 0;
+
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject obj = arr.optJSONObject(i);
+                    if (obj == null)
+                        continue;
+
+                    int originalId = obj.optInt("id", 0);
+                    int type = obj.optInt("type", MessageModel.TYPE_SENT_SIMPLE);
+                    String msg = obj.optString("message", "");
+                    String imgUrl = obj.optString("imageUrl", "");
+                    String avUrl = obj.optString("avatarUrl", "");
+                    String sender = obj.optString("senderName", "");
+                    String ts = obj.optString("timestamp", "");
+                    boolean onTop = obj.optBoolean("messageOnTop", true);
+
+                    // ── Skip non-message rows that may have slipped into the export ──
+                    if (type == MessageModel.TYPE_DATE_HEADER
+                            || type == MessageModel.TYPE_SYSTEM
+                            || type == MessageModel.TYPE_TYPING_INDICATOR) {
+                        continue;
+                    }
+
+                    // ── Honour the original ID so reply references survive ────────
+                    // If originalId is already taken (shouldn't happen in clean exports)
+                    // fall back to the auto-increment counter.
+                    int assignedId;
+                    if (originalId > 0 && !MessageExists(originalId)) {
+                        assignedId = originalId;
+                    } else {
+                        assignedId = nextMessageId++;
+                    }
+
+                    // ── Rebuild the model ────────────────────────────────────────
+                    final MessageModel m;
+                    if (type == MessageModel.TYPE_SENT_TEXT_IMAGE
+                            || type == MessageModel.TYPE_RECEIVED_TEXT_IMAGE) {
+                        m = new MessageModel(assignedId, type,
+                                msg, imgUrl, avUrl, sender, ts, onTop);
+                    } else {
+                        m = new MessageModel(assignedId, type,
+                                msg, avUrl, sender, ts);
+                    }
+
+                    m.isStarred = obj.optBoolean("isStarred", false);
+                    m.isEdited = obj.optBoolean("isEdited", false);
+                    m.replyToId = obj.optInt("replyToId", 0);
+                    m.replyToText = obj.optString("replyToText", "");
+                    m.replyToSender = obj.optString("replyToSender", "");
+                    m.replyToIsSent = obj.optBoolean("replyToIsSent", false);
+                    m.rawSource = obj.optString("rawSource", "");
+
+                    if (m.isStarred)
+                        starredMessageIds.add(assignedId);
+
+                    addMessageInternal(m);
+                    restoredCount++;
+                }
+
+                // Rebuild position cache once everything is inserted
+                // uiHandler.post(() -> {
+                // rebuildMessagePositions();
+                // ImportCompleted(restoredCount);
+                // });
+
+                final int finalRestoredCount = restoredCount;
+                uiHandler.post(() -> {
+                    rebuildMessagePositions();
+                    ImportCompleted(finalRestoredCount);
+                });
+
+            } catch (Exception e) {
+                ImportFailed("Restore error: " + e.getMessage());
+            }
+        }, 300);
     }
 
     @SimpleEvent(description = "Fired after SaveExportToFile succeeds.")
@@ -1662,6 +1839,44 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
         } catch (Exception ignored) {
         }
         return "";
+    }
+
+    @SimpleFunction(description = "Add a reaction emoji to a message.")
+    public void AddReaction(int messageId, String emoji) {
+        uiHandler.post(() -> {
+            int pos = findMessagePositionById(messageId);
+            if (pos < 0)
+                return;
+            MessageModel m = messageList.get(pos);
+            if (m.reactions == null)
+                m.reactions = new LinkedHashMap<>();
+            m.reactions.merge(emoji, 1, Integer::sum);
+            if (chatAdapter != null)
+                chatAdapter.notifyItemChanged(pos);
+        });
+    }
+
+    @SimpleFunction(description = "Insert an 'Unread messages' separator at current position.")
+    public void InsertUnreadSeparator() {
+        uiHandler.post(() -> {
+            messageList.add(new MessageModel(MessageModel.TYPE_UNREAD_SEPARATOR, "Unread Messages"));
+            if (chatAdapter != null)
+                chatAdapter.notifyItemInserted(messageList.size() - 1);
+        });
+    }
+
+    @SimpleFunction(description = "Search messages containing query text. Returns list of matching IDs.")
+    public YailList SearchMessages(String query) {
+        List<Integer> results = new ArrayList<>();
+        if (query == null || query.isEmpty())
+            return YailList.makeList(results);
+        String lower = query.toLowerCase(Locale.getDefault());
+        for (MessageModel m : messageList) {
+            if (m.messageId > 0 && m.message != null && m.message.toLowerCase(Locale.getDefault()).contains(lower)) {
+                results.add(m.messageId);
+            }
+        }
+        return YailList.makeList(results);
     }
 
     @SimpleFunction(description = "Returns the width in pixels of the VerticalArrangement (or screen width).")

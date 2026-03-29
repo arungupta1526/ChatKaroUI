@@ -173,34 +173,35 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     // ── Message ViewHolder ───────────────────────────────────────────────────
 
-
     static class MessageVH extends RecyclerView.ViewHolder {
         final LinearLayout rootLayout;
         boolean isInitialized = false;
-        
+
         TextView nameView;
         ImageView avatarView;
         LinearLayout contentRow;
         LinearLayout bubbleWrapper;
         LinearLayout innerContent;
-        
+
         LinearLayout replyStrip;
         TextView replySenderView;
         TextView replyPreviewView;
-        
+
         TextView msgView;
         ImageView imgView;
-        
+
         LinearLayout previewCard;
         TextView previewSiteView;
         TextView previewTitleView;
         TextView previewDescView;
-        
+
         LinearLayout metaRow;
         TextView editedView;
         TextView timeView;
         TextView starView;
         TextView statusView;
+
+        boolean wasSent = false;
 
         MessageVH(LinearLayout root) {
             super(root);
@@ -214,7 +215,15 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             boolean isSent = model.isSentType();
             Context ctx = rootLayout.getContext();
 
-            if (!isInitialized) {
+            // if (!isInitialized) {
+            // initViews(ctx, isSent, cfg, model.viewType);
+            // isInitialized = true;
+            // }
+
+            // NEW
+            if (!isInitialized || this.wasSent != isSent) {
+                this.wasSent = isSent;
+                rootLayout.removeAllViews();
                 initViews(ctx, isSent, cfg, model.viewType);
                 isInitialized = true;
             }
@@ -244,7 +253,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 final String name = model.senderName;
                 final String url = model.avatarUrl;
                 avatarView.setOnClickListener(v -> {
-                    if (cb != null) cb.onProfilePictureClicked(name, url);
+                    if (cb != null)
+                        cb.onProfilePictureClicked(name, url);
                 });
                 imageLoader.loadCircular(avatarView, model.avatarUrl, cfg.avatarSize);
             }
@@ -267,13 +277,15 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         ? model.replyToSender
                         : (model.replyToIsSent ? "You" : ""));
                 String preview = model.replyToText != null ? model.replyToText : "";
-                if (preview.length() > 80) preview = preview.substring(0, 80) + "…";
+                if (preview.length() > 80)
+                    preview = preview.substring(0, 80) + "…";
                 replyPreviewView.setText(preview);
                 replyPreviewView.setTextColor(cfg.replyPreviewTextColor);
-                
+
                 final int replyId = model.replyToId;
                 replyStrip.setOnClickListener(v -> {
-                    if (cb != null) cb.onReplyQuoteTapped(replyId);
+                    if (cb != null)
+                        cb.onReplyQuoteTapped(replyId);
                 });
             } else {
                 replyStrip.setVisibility(View.GONE);
@@ -283,7 +295,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             if (model.message != null && !model.message.isEmpty()) {
                 msgView.setVisibility(View.VISIBLE);
                 msgView.setTextColor(isSent ? cfg.sentMessageTextColor : cfg.receivedMessageTextColor);
-                
+
                 // Recalculate max width for text
                 int arrangementW = cfg.arrangementWidthPx > 0
                         ? cfg.arrangementWidthPx
@@ -310,14 +322,16 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 } else {
                     msgView.setText(model.message);
                     if (cfg.autoLinkEnabledInChat) {
-                        android.text.util.Linkify.addLinks(msgView, android.text.util.Linkify.WEB_URLS | android.text.util.Linkify.EMAIL_ADDRESSES);
+                        android.text.util.Linkify.addLinks(msgView,
+                                android.text.util.Linkify.WEB_URLS | android.text.util.Linkify.EMAIL_ADDRESSES);
                         java.util.regex.Pattern phone = java.util.regex.Pattern.compile("\\b\\d{10,}\\b");
                         java.util.regex.Matcher mat = phone.matcher(model.message);
-                        if (mat.find()) android.text.util.Linkify.addLinks(msgView, phone, "tel:");
+                        if (mat.find())
+                            android.text.util.Linkify.addLinks(msgView, phone, "tel:");
                         msgView.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
                     }
                 }
-                
+
                 if (!hasImage && cfg.showMetadataOutBubble) {
                     msgView.setBackground(cfg.createBubbleDrawable(isSent));
                 } else {
@@ -336,10 +350,12 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 final int msgId = model.messageId;
                 imgView.setOnClickListener(v -> {
                     android.graphics.drawable.Drawable d = imgView.getDrawable();
-                    if (d != null && cb != null) cb.showFullscreenImage(d);
+                    if (d != null && cb != null)
+                        cb.showFullscreenImage(d);
                 });
                 imgView.setOnLongClickListener(v -> {
-                    if (cb != null) cb.showImageOptionsMenu(v, imgUrl, imgView, msgId);
+                    if (cb != null)
+                        cb.showImageOptionsMenu(v, imgUrl, imgView, msgId);
                     return true;
                 });
             } else {
@@ -347,15 +363,34 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
 
             // Ordering image and text dynamically based on model.messageOnTop
+            // if (msgView.getVisibility() == View.VISIBLE && imgView.getVisibility() ==
+            // View.VISIBLE) {
+            // innerContent.removeView(msgView);
+            // innerContent.removeView(imgView);
+            // if (model.messageOnTop) {
+            // innerContent.addView(msgView);
+            // innerContent.addView(imgView);
+            // } else {
+            // innerContent.addView(imgView);
+            // innerContent.addView(msgView);
+            // }
+            // }
+
+            // NEW
             if (msgView.getVisibility() == View.VISIBLE && imgView.getVisibility() == View.VISIBLE) {
-                innerContent.removeView(msgView);
-                innerContent.removeView(imgView);
-                if (model.messageOnTop) {
-                    innerContent.addView(msgView);
-                    innerContent.addView(imgView);
-                } else {
-                    innerContent.addView(imgView);
-                    innerContent.addView(msgView);
+                int msgIndex = innerContent.indexOfChild(msgView);
+                int imgIndex = innerContent.indexOfChild(imgView);
+                boolean needsReorder = model.messageOnTop ? (msgIndex > imgIndex) : (imgIndex > msgIndex);
+                if (needsReorder) {
+                    innerContent.removeView(msgView);
+                    innerContent.removeView(imgView);
+                    if (model.messageOnTop) {
+                        innerContent.addView(msgView);
+                        innerContent.addView(imgView);
+                    } else {
+                        innerContent.addView(imgView);
+                        innerContent.addView(msgView);
+                    }
                 }
             }
 
@@ -417,13 +452,22 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
 
             // Check where metadata row resides
-            if (metaRow.getParent() != null) {
-                ((ViewGroup) metaRow.getParent()).removeView(metaRow);
-            }
-            if (cfg.showMetadataInsideBubble) {
-                innerContent.addView(metaRow);
-            } else {
-                bubbleWrapper.addView(metaRow);
+            // if (metaRow.getParent() != null) {
+            // ((ViewGroup) metaRow.getParent()).removeView(metaRow);
+            // }
+            // if (cfg.showMetadataInsideBubble) {
+            // innerContent.addView(metaRow);
+            // } else {
+            // bubbleWrapper.addView(metaRow);
+            // }
+
+            // NEW
+            ViewGroup metaParent = (ViewGroup) metaRow.getParent();
+            ViewGroup targetParent = cfg.showMetadataInsideBubble ? innerContent : bubbleWrapper;
+            if (metaParent != targetParent) {
+                if (metaParent != null)
+                    metaParent.removeView(metaRow);
+                targetParent.addView(metaRow);
             }
 
             // ── Long-click / click listeners ─────────────────────────────────
@@ -455,7 +499,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             msgView.setOnLongClickListener(longClickListener);
             msgView.setOnClickListener(clickListener);
             replyStrip.setOnLongClickListener(longClickListener);
-            
+
             replyStrip.setOnClickListener(v -> {
                 if (cb != null && msgId > 0 && cb.isMultiSelectionActive()) {
                     cb.onMessageSelected(msgText, msgId);
@@ -474,13 +518,15 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             nameView.setTypeface(cfg.typeface != null ? cfg.typeface : Typeface.DEFAULT, Typeface.BOLD);
             nameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.nameFontSize);
             nameView.setGravity(isSent ? Gravity.END : Gravity.START);
-            nameView.setPadding(dpToPx(ctx, isSent ? 0 : cfg.avatarSize / 2 + 8), 0, dpToPx(ctx, isSent ? cfg.avatarSize / 2 + 8 : 0), 0);
+            nameView.setPadding(dpToPx(ctx, isSent ? 0 : cfg.avatarSize / 2 + 8), 0,
+                    dpToPx(ctx, isSent ? cfg.avatarSize / 2 + 8 : 0), 0);
             rootLayout.addView(nameView);
 
             // Content row & Avatar
             contentRow = new LinearLayout(ctx);
             contentRow.setOrientation(LinearLayout.HORIZONTAL);
-            contentRow.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            contentRow.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
 
             boolean hasAvatar = viewType == MessageModel.TYPE_SENT_AVATAR
                     || viewType == MessageModel.TYPE_RECEIVED_AVATAR
@@ -503,15 +549,18 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             bubbleWrapper = new LinearLayout(ctx);
             bubbleWrapper.setOrientation(LinearLayout.VERTICAL);
             bubbleWrapper.setGravity(isSent ? Gravity.END : Gravity.START);
-            LinearLayout.LayoutParams bwp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            LinearLayout.LayoutParams bwp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
             bwp.setMargins(dpToPx(ctx, 8), 0, dpToPx(ctx, 8), 0);
             bubbleWrapper.setLayoutParams(bwp);
 
             innerContent = new LinearLayout(ctx);
             innerContent.setOrientation(LinearLayout.VERTICAL);
-            innerContent.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            innerContent.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
 
-            int arrangementW = cfg.arrangementWidthPx > 0 ? cfg.arrangementWidthPx : ctx.getResources().getDisplayMetrics().widthPixels;
+            int arrangementW = cfg.arrangementWidthPx > 0 ? cfg.arrangementWidthPx
+                    : ctx.getResources().getDisplayMetrics().widthPixels;
             int defaultMaxPx = (int) (arrangementW * 0.8f);
             int maxWidthDp = cfg.textMessageMaxWidth;
             int pmaxPx = (cfg.useResponsiveWidth && maxWidthDp == 0) ? defaultMaxPx : dpToPx(ctx, maxWidthDp);
@@ -519,14 +568,17 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             // Reply Strip
             replyStrip = new LinearLayout(ctx);
             replyStrip.setOrientation(LinearLayout.HORIZONTAL);
-            LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            sp.setMargins(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, 6), dpToPx(ctx, cfg.messageHorizontalPadding), 0);
+            LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            sp.setMargins(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, 6),
+                    dpToPx(ctx, cfg.messageHorizontalPadding), 0);
             replyStrip.setLayoutParams(sp);
             replyStrip.setBackground(cfg.createReplyDrawable(isSent));
             replyStrip.setPadding(0, dpToPx(ctx, 4), dpToPx(ctx, 8), dpToPx(ctx, 4));
-            
+
             View accent = new View(ctx);
-            LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(dpToPx(ctx, 3), ViewGroup.LayoutParams.MATCH_PARENT);
+            LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(dpToPx(ctx, 3),
+                    ViewGroup.LayoutParams.MATCH_PARENT);
             ap.setMargins(0, 0, dpToPx(ctx, 8), 0);
             accent.setLayoutParams(ap);
             accent.setBackgroundColor(cfg.replyAccentColor);
@@ -534,7 +586,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             LinearLayout textCol = new LinearLayout(ctx);
             textCol.setOrientation(LinearLayout.VERTICAL);
-            textCol.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            textCol.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
             replySenderView = new TextView(ctx);
             replySenderView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.nameFontSize);
             replySenderView.setTypeface(null, Typeface.BOLD);
@@ -543,7 +596,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             replySenderView.setEllipsize(android.text.TextUtils.TruncateAt.END);
             replySenderView.setSingleLine(true);
             textCol.addView(replySenderView);
-            
+
             replyPreviewView = new TextView(ctx);
             replyPreviewView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.messageFontSize - 2);
             replyPreviewView.setMaxLines(2);
@@ -557,21 +610,25 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             msgView = new TextView(ctx);
             msgView.setTypeface(cfg.typeface != null ? cfg.typeface : Typeface.DEFAULT);
             msgView.setTextSize(TypedValue.COMPLEX_UNIT_SP, cfg.messageFontSize);
-            msgView.setPadding(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding), dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding));
+            msgView.setPadding(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding),
+                    dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding));
             msgView.setSingleLine(false);
             msgView.setHorizontallyScrolling(false);
             msgView.setMaxWidth(pmaxPx);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 msgView.setBreakStrategy(android.text.Layout.BREAK_STRATEGY_SIMPLE);
             }
-            msgView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            msgView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
             innerContent.addView(msgView);
 
             // Message image
             imgView = new ImageView(ctx);
-            imgView.setPadding(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding), dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding));
+            imgView.setPadding(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding),
+                    dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding));
             int maxImgPx = dpToPx(ctx, cfg.imageMessageMaxWidth);
-            LinearLayout.LayoutParams imgp = new LinearLayout.LayoutParams(maxImgPx, ViewGroup.LayoutParams.WRAP_CONTENT);
+            LinearLayout.LayoutParams imgp = new LinearLayout.LayoutParams(maxImgPx,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
             imgp.gravity = Gravity.CENTER;
             imgView.setLayoutParams(imgp);
             imgView.setAdjustViewBounds(true);
@@ -582,7 +639,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             previewCard = new LinearLayout(ctx);
             previewCard.setOrientation(LinearLayout.VERTICAL);
             LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(pmaxPx, ViewGroup.LayoutParams.WRAP_CONTENT);
-            cp.setMargins(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, 4), dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding));
+            cp.setMargins(dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, 4),
+                    dpToPx(ctx, cfg.messageHorizontalPadding), dpToPx(ctx, cfg.messageVerticalPadding));
             previewCard.setLayoutParams(cp);
             previewCard.setBackground(cfg.createLinkPreviewDrawable());
             previewCard.setPadding(dpToPx(ctx, 10), dpToPx(ctx, 8), dpToPx(ctx, 10), dpToPx(ctx, 8));
@@ -618,7 +676,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             // Metadata Row
             metaRow = new LinearLayout(ctx);
             metaRow.setOrientation(LinearLayout.HORIZONTAL);
-            metaRow.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            metaRow.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
             metaRow.setGravity(isSent ? Gravity.END : Gravity.START);
 
             editedView = new TextView(ctx);
@@ -646,10 +705,12 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             // Assemble row
             if (isSent) {
                 contentRow.addView(bubbleWrapper);
-                if (avatarView != null) contentRow.addView(avatarView);
+                if (avatarView != null)
+                    contentRow.addView(avatarView);
                 contentRow.setGravity(Gravity.END);
             } else {
-                if (avatarView != null) contentRow.addView(avatarView);
+                if (avatarView != null)
+                    contentRow.addView(avatarView);
                 contentRow.addView(bubbleWrapper);
                 contentRow.setGravity(Gravity.START);
             }

@@ -1,5 +1,8 @@
 package com.prem.chatkaroui;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Data model representing a single chat item (message, date header, system
  * message, or typing indicator).
@@ -63,6 +66,9 @@ public class MessageModel {
      * export/import can round-trip correctly without losing markup.
      */
     public String rawSource;
+
+    public Map<String, Integer> reactions; // emoji → count
+    public static final int TYPE_UNREAD_SEPARATOR = 9;
 
     // ────────────────────────────────────────────────────────────────────────
     // Constructors
@@ -129,6 +135,7 @@ public class MessageModel {
         previewSiteName = "";
         previewLoading = false;
         rawSource = "";
+        reactions = new LinkedHashMap<>();
     }
 
     /** Returns true if this model carries a valid reply reference. */

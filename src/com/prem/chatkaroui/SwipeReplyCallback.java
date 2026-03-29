@@ -16,11 +16,12 @@ import java.util.List;
  * ItemTouchHelper.SimpleCallback that enables WhatsApp-style swipe-to-reply.
  *
  * Behaviour:
- *   - Any message item can be swiped RIGHT (received) or LEFT (sent).
- *   - A circular reply icon slides in proportionally to the swipe distance.
- *   - At 30 % of item width the item snaps back and fires {@link ReplyCallback}.
- *   - The icon grows from 0 → full size as the user swipes, giving tactile feedback.
- *   - Date-headers, system messages and typing indicators are NOT swipeable.
+ * - Any message item can be swiped RIGHT (received) or LEFT (sent).
+ * - A circular reply icon slides in proportionally to the swipe distance.
+ * - At 30 % of item width the item snaps back and fires {@link ReplyCallback}.
+ * - The icon grows from 0 → full size as the user swipes, giving tactile
+ * feedback.
+ * - Date-headers, system messages and typing indicators are NOT swipeable.
  *
  * Portrait / Landscape safe: uses item width at draw-time so it adapts
  * automatically to any screen orientation.
@@ -34,22 +35,26 @@ public class SwipeReplyCallback extends ItemTouchHelper.SimpleCallback {
     // ── Trigger threshold (fraction of item width) ───────────────────────────
     private static final float TRIGGER_FRACTION = 0.30f;
     // Maximum icon travel as fraction of item width
-    private static final float MAX_ICON_TRAVEL  = 0.25f;
+    private static final float MAX_ICON_TRAVEL = 0.25f;
 
     private final ReplyCallback replyCallback;
-    private final Paint circlePaint   = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint arrowPaint    = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint arrowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final List<MessageModel> messageList;
     private final RecyclerView.Adapter<?> adapter;
 
     // Track which position was triggered so we don't re-fire on residual draw
-    private long triggeredPosition = RecyclerView.NO_ID;
+    // private long triggeredPosition = RecyclerView.NO_ID;
 
-    public SwipeReplyCallback(List<MessageModel> messageList, RecyclerView.Adapter<?> adapter, ReplyCallback replyCallback) {
+    // NEW
+    private int triggeredPosition = RecyclerView.NO_POSITION;
+
+    public SwipeReplyCallback(List<MessageModel> messageList, RecyclerView.Adapter<?> adapter,
+            ReplyCallback replyCallback) {
         // No drag, swipe LEFT + RIGHT
         super(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
-        this.messageList   = messageList;
-        this.adapter       = adapter;
+        this.messageList = messageList;
+        this.adapter = adapter;
         this.replyCallback = replyCallback;
 
         circlePaint.setColor(0xFFE0E0E0);
@@ -66,15 +71,16 @@ public class SwipeReplyCallback extends ItemTouchHelper.SimpleCallback {
 
     @Override
     public int getSwipeDirs(@NonNull RecyclerView recyclerView,
-                            @NonNull RecyclerView.ViewHolder viewHolder) {
+            @NonNull RecyclerView.ViewHolder viewHolder) {
         int pos = viewHolder.getAdapterPosition();
-        if (pos < 0 || pos >= messageList.size()) return 0;
+        if (pos < 0 || pos >= messageList.size())
+            return 0;
         MessageModel m = messageList.get(pos);
         // Only real message items are swipeable
         int type = m.viewType;
         if (type == MessageModel.TYPE_DATE_HEADER
-         || type == MessageModel.TYPE_SYSTEM
-         || type == MessageModel.TYPE_TYPING_INDICATOR) {
+                || type == MessageModel.TYPE_SYSTEM
+                || type == MessageModel.TYPE_TYPING_INDICATOR) {
             return 0;
         }
         // Sent messages swipe LEFT, received swipe RIGHT
@@ -96,8 +102,8 @@ public class SwipeReplyCallback extends ItemTouchHelper.SimpleCallback {
 
     @Override
     public boolean onMove(@NonNull RecyclerView rv,
-                          @NonNull RecyclerView.ViewHolder v,
-                          @NonNull RecyclerView.ViewHolder t) {
+            @NonNull RecyclerView.ViewHolder v,
+            @NonNull RecyclerView.ViewHolder t) {
         return false;
     }
 
@@ -106,7 +112,8 @@ public class SwipeReplyCallback extends ItemTouchHelper.SimpleCallback {
         int pos = viewHolder.getAdapterPosition();
         if (pos >= 0 && pos != triggeredPosition) {
             triggeredPosition = pos;
-            if (replyCallback != null) replyCallback.onReply(pos);
+            if (replyCallback != null)
+                replyCallback.onReply(pos);
         }
         // Snap back — do NOT remove the item
         if (adapter != null) {
@@ -116,9 +123,9 @@ public class SwipeReplyCallback extends ItemTouchHelper.SimpleCallback {
 
     @Override
     public void clearView(@NonNull RecyclerView rv,
-                          @NonNull RecyclerView.ViewHolder viewHolder) {
+            @NonNull RecyclerView.ViewHolder viewHolder) {
         super.clearView(rv, viewHolder);
-        triggeredPosition = RecyclerView.NO_ID;
+        triggeredPosition = RecyclerView.NO_POSITION;
         // Ensure view is fully reset to avoid ghost offset
         viewHolder.itemView.setTranslationX(0f);
     }
@@ -127,11 +134,11 @@ public class SwipeReplyCallback extends ItemTouchHelper.SimpleCallback {
 
     @Override
     public void onChildDraw(@NonNull Canvas c,
-                            @NonNull RecyclerView recyclerView,
-                            @NonNull RecyclerView.ViewHolder viewHolder,
-                            float dX, float dY,
-                            int actionState,
-                            boolean isCurrentlyActive) {
+            @NonNull RecyclerView recyclerView,
+            @NonNull RecyclerView.ViewHolder viewHolder,
+            float dX, float dY,
+            int actionState,
+            boolean isCurrentlyActive) {
 
         if (actionState != ItemTouchHelper.ACTION_STATE_SWIPE) {
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
@@ -139,14 +146,15 @@ public class SwipeReplyCallback extends ItemTouchHelper.SimpleCallback {
         }
 
         View item = viewHolder.itemView;
-        float itemWidth  = item.getWidth();
-        if (itemWidth == 0) return;
-        float absDx      = Math.abs(dX);
-        float fraction   = Math.min(absDx / itemWidth, MAX_ICON_TRAVEL);
+        float itemWidth = item.getWidth();
+        if (itemWidth == 0)
+            return;
+        float absDx = Math.abs(dX);
+        float fraction = Math.min(absDx / itemWidth, MAX_ICON_TRAVEL);
 
         // Icon grows from 0 to full size at trigger threshold
         float growFraction = Math.min(fraction / TRIGGER_FRACTION, 1f);
-        float iconRadius = dpToPx(18) * growFraction;   // max radius 18 dp
+        float iconRadius = dpToPx(18) * growFraction; // max radius 18 dp
         float iconCenterY = item.getTop() + item.getHeight() / 2f;
 
         if (dX > 0) {
@@ -164,7 +172,8 @@ public class SwipeReplyCallback extends ItemTouchHelper.SimpleCallback {
             int pos = viewHolder.getAdapterPosition();
             if (fraction >= TRIGGER_FRACTION && pos != triggeredPosition) {
                 triggeredPosition = pos;
-                if (replyCallback != null) replyCallback.onReply(pos);
+                if (replyCallback != null)
+                    replyCallback.onReply(pos);
             }
         }
 
@@ -179,16 +188,18 @@ public class SwipeReplyCallback extends ItemTouchHelper.SimpleCallback {
      * @param flipped true = arrow points left (for sent messages swiped left)
      */
     private void drawReplyIcon(Canvas c, float cx, float cy,
-                               float radius, boolean flipped) {
-        if (radius < 2) return;
+            float radius, boolean flipped) {
+        if (radius < 2)
+            return;
 
         // Circle background
         c.drawCircle(cx, cy, radius, circlePaint);
 
-        if (radius < 6) return; // too small to draw arrow legibly
+        if (radius < 6)
+            return; // too small to draw arrow legibly
 
         // Scale arrow proportionally to circle
-        float ar = radius * 0.55f;  // arrow "radius" (half-size)
+        float ar = radius * 0.55f; // arrow "radius" (half-size)
         arrowPaint.setStrokeWidth(radius * 0.14f);
 
         c.save();
@@ -198,7 +209,7 @@ public class SwipeReplyCallback extends ItemTouchHelper.SimpleCallback {
         }
 
         // Reply arrow: curved hook + arrowhead
-        //   Looks like ↩ (return/reply symbol)
+        // Looks like ↩ (return/reply symbol)
         Path path = new Path();
 
         // Curved tail (arc from right to left, curving upward)
@@ -220,6 +231,6 @@ public class SwipeReplyCallback extends ItemTouchHelper.SimpleCallback {
 
     private static float dpToPx(float dp) {
         return dp * android.content.res.Resources.getSystem()
-                        .getDisplayMetrics().density;
+                .getDisplayMetrics().density;
     }
 }
