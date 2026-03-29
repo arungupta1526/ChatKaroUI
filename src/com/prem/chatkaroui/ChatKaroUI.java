@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 
 import static android.graphics.Color.parseColor;
 
-@DesignerComponent(version = 3, versionName = "3.1", description = "ChatKaroUI — customizable chat component with text, images, reply, star, "
+@DesignerComponent(version = 3, versionName = "3.2.0", description = "ChatKaroUI — customizable chat component with text, images, reply, star, "
         +
         "HTML/Markdown, export/import and more. " +
         "Made by: Arun Gupta <br>" +
@@ -140,6 +140,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
     private boolean showReadStatus = true;
     private boolean showTypingIndicator = false;
     private boolean showMetadataInsideBubble = false;
+    private boolean showDateHeaders = true;
     private boolean useResponsiveWidth = true;
     private boolean autoLinkEnabledInChat = true;
     private boolean squareBubbleEdge = false;
@@ -219,8 +220,8 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
 
                 @Override
                 public void showTextOptionsMenu(View anchor, String msg, int id,
-                        boolean isSent, boolean isStarred) {
-                    ChatKaroUI.this.showTextOptionsMenu(anchor, msg, id, isSent, isStarred);
+                        boolean isSent, boolean isStarred, String senderName, String avatarUrl) {
+                    ChatKaroUI.this.showTextOptionsMenu(anchor, msg, id, isSent, isStarred, senderName, avatarUrl);
                 }
 
                 @Override
@@ -277,7 +278,8 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
             MessageModel m = messageList.get(adapterPos);
             if (m.messageId > 0) {
                 String preview = m.message != null ? m.message : "";
-                ReplyTriggered(m.messageId, preview, m.isSentType());
+                String replySender = m.isSentType() ? "You" : m.senderName;
+                ReplyTriggered(m.messageId, preview, replySender, m.avatarUrl, m.isSentType());
             }
         });
         swipeHelper = new ItemTouchHelper(callback);
@@ -332,6 +334,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
         c.showReadStatus = showReadStatus;
         c.showMetadataInsideBubble = showMetadataInsideBubble;
         c.showMetadataOutBubble = !showMetadataInsideBubble;
+        c.showDateHeaders = showDateHeaders;
         c.squareBubbleEdge = squareBubbleEdge;
         c.autoLinkEnabledInChat = autoLinkEnabledInChat;
         c.useResponsiveWidth = useResponsiveWidth;
@@ -559,11 +562,13 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
             if (model.messageId > 0 && model.timestamp != null && !model.timestamp.isEmpty()) {
                 String date = extractDateFrom(model.timestamp);
                 if (!date.equals(lastMessageDate)) {
-                    MessageModel header = new MessageModel(
-                            MessageModel.TYPE_DATE_HEADER, formatDateReadable(date));
-                    messageList.add(header);
-                    if (chatAdapter != null)
-                        chatAdapter.notifyItemInserted(messageList.size() - 1);
+                    if (showDateHeaders) {
+                        MessageModel header = new MessageModel(
+                                MessageModel.TYPE_DATE_HEADER, formatDateReadable(date));
+                        messageList.add(header);
+                        if (chatAdapter != null)
+                            chatAdapter.notifyItemInserted(messageList.size() - 1);
+                    }
                     lastMessageDate = date;
                 }
             }
@@ -675,10 +680,11 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
     // Swipe-to-reply events
     // ────────────────────────────────────────────────────────────────────────
 
-    @SimpleEvent(description = "Fired when the user swipes a message to reply. " +
-            "Use messageId and messageText to populate your reply input field.")
-    public void ReplyTriggered(int messageId, String messageText, boolean isSent) {
-        EventDispatcher.dispatchEvent(this, "ReplyTriggered", messageId, messageText, isSent);
+    @SimpleEvent(description = "Fired when a message is swiped or reply menu item is clicked.")
+    public void ReplyTriggered(int messageId, String messageText, String replyToSender,
+            String avatarUrl, boolean isSent) {
+        EventDispatcher.dispatchEvent(this, "ReplyTriggered", messageId, messageText,
+                replyToSender, avatarUrl, isSent);
     }
 
     @SimpleEvent(description = "Fired when the user taps the reply-quote strip inside a message " +
@@ -1381,9 +1387,8 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
     }
 
     // ── Context / menu ───────────────────────────────────────────────────────
-
-    private void showTextOptionsMenu(View anchor, String message, int messageId,
-            boolean isSent, boolean isStarred) {
+    public void showTextOptionsMenu(View anchor, String message, int messageId,
+            boolean isSent, boolean isStarred, String senderName, String avatarUrl) {
         PopupMenu menu = new PopupMenu(context, anchor);
 
         if (showDefaultMenuItems) {
@@ -1408,7 +1413,8 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
                     DeleteMessageById(messageId);
                     break;
                 case "Reply":
-                    ReplyTriggered(messageId, message, isSent);
+                    String replySender = isSent ? "You" : senderName;
+                    ReplyTriggered(messageId, message, replySender, avatarUrl, isSent);
                     break;
                 case "Forward":
                     ForwardTriggered(messageId, message);
@@ -2748,5 +2754,17 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
         public boolean onTouch(View v, android.view.MotionEvent e) {
             return detector.onTouchEvent(e);
         }
+    }
+
+    @SimpleProperty(description = "Whether to show date headers in the chat.")
+    public boolean ShowDateHeaders() {
+        return showDateHeaders;
+    }
+
+    @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN, defaultValue = "True")
+    @SimpleProperty(description = "Enable or disable date headers.")
+    public void ShowDateHeaders(boolean v) {
+        showDateHeaders = v;
+        refreshChatConfig();
     }
 }

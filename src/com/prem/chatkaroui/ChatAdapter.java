@@ -22,8 +22,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * RecyclerView Adapter for ChatKaroUI v3.1.
@@ -51,7 +49,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         void onProfilePictureClicked(String name, String avatarUrl);
 
-        void showTextOptionsMenu(View anchor, String message, int messageId, boolean isSent, boolean isStarred);
+        void showTextOptionsMenu(View anchor, String message, int messageId, boolean isSent, boolean isStarred, String senderName, String avatarUrl);
 
         void showImageOptionsMenu(View anchor, String imageUrl, ImageView imageView, int messageId);
 
@@ -460,22 +458,18 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
 
             // Check where metadata row resides
-            // if (metaRow.getParent() != null) {
-            // ((ViewGroup) metaRow.getParent()).removeView(metaRow);
-            // }
-            // if (cfg.showMetadataInsideBubble) {
-            // innerContent.addView(metaRow);
-            // } else {
-            // bubbleWrapper.addView(metaRow);
-            // }
-
-            // NEW
             ViewGroup metaParent = (ViewGroup) metaRow.getParent();
             ViewGroup targetParent = cfg.showMetadataInsideBubble ? innerContent : bubbleWrapper;
             if (metaParent != targetParent) {
                 if (metaParent != null)
                     metaParent.removeView(metaRow);
                 targetParent.addView(metaRow);
+            }
+
+            if (cfg.showMetadataInsideBubble) {
+                LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) metaRow.getLayoutParams();
+                lp.gravity = isSent ? Gravity.END : Gravity.START;
+                metaRow.setLayoutParams(lp);
             }
 
             // ── Long-click / click listeners ─────────────────────────────────
@@ -489,7 +483,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         cb.onMessageSelected(msgText, msgId);
                     } else {
                         cb.onMessageSelected(msgText, msgId);
-                        v.post(() -> cb.showTextOptionsMenu(innerContent, msgText, msgId, isSent, starred));
+                        v.post(() -> cb.showTextOptionsMenu(innerContent, msgText, msgId, isSent, starred,
+                                model.senderName, model.avatarUrl));
                     }
                 }
                 return true;

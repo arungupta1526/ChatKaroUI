@@ -14,8 +14,8 @@ ChatKaroUI is a `customizable advance chat component extension` text, images, re
 🔎 **Use Place:** An extension for _`MIT App Inventor 2, Kodular, Niotron, Android Builder.`_ <br>
 👤 **Author:** Created by: [Prem_Gupta](https://community.appinventor.mit.edu/u/prem_gupta/summary) <br>
 📦 **Package:** com.prem.chatkaroui <br>
-💾 **Size:** 82 KB <br>
-⚙️ **Version:** 3.1 <br>
+💾 **Size:** 80 KB <br>
+⚙️ **Version:** 3.2.0 <br>
 📱 **Minimum API Level:** 14 <br>
 📅 **Built On:** [date=2025-09-02 timezone="Asia/Kolkata"] <br>
 📅 **Updated On:** [date=2026-03-29 timezone="Asia/Kolkata"] <br>
@@ -45,11 +45,13 @@ Fired when a message is starred or unstarred.
 ### 2. ReplyTriggered
 Fired when the user swipes a message to reply. Use messageId and messageText to populate your reply input field.
 
-| Parameter   | Type    |
-| ----------- | ------- |
-| messageId   | number  |
-| messageText | text    |
-| isSent      | boolean |
+| Parameter     | Type    |
+| ------------- | ------- |
+| messageId     | number  |
+| messageText   | text    |
+| replyToSender | text    |
+| avatarUrl     | text    |
+| isSent        | boolean |
 
 ### 3. ReplyQuoteTapped
 Fired when the user taps the reply-quote strip inside a message to scroll to the original.
@@ -616,7 +618,7 @@ Get count of custom image menu items.
 * Return type: `number`
 
 ## <kbd>Designer:</kbd>
-**ChatKaroUI** has total 50 designer properties.
+**ChatKaroUI** has total 51 designer properties.
 
 ### 1. AvatarSize
 
@@ -867,8 +869,13 @@ Get count of custom image menu items.
 * Input type: `boolean`
 * Default value: `True`
 
+### 51. ShowDateHeaders
+
+* Input type: `boolean`
+* Default value: `True`
+
 ## <kbd>Setters:</kbd>
-**ChatKaroUI** has total 50 setter properties.
+**ChatKaroUI** has total 51 setter properties.
 
 ### 1. AvatarSize
 Get avatar size in DP.
@@ -1117,11 +1124,16 @@ Enable or disable swipe-to-reply gesture.
 
 ### 50. ShowDefaultMenuItems
 Show or hide default context-menu items (Reply, Star, Copy, Delete, Forward, Edit).
+
+* Input type: `boolean`
+
+### 51. ShowDateHeaders
+Enable or disable all date headers (Today, Yesterday, etc.).
 
 * Input type: `boolean`
 
 ## <kbd>Getters:</kbd>
-**ChatKaroUI** has total 50 getter properties.
+**ChatKaroUI** has total 51 getter properties.
 
 ### 1. AvatarSize
 Get avatar size in DP.
@@ -1370,5 +1382,10 @@ Enable or disable swipe-to-reply gesture.
 
 ### 50. ShowDefaultMenuItems
 Show or hide default context-menu items (Reply, Star, Copy, Delete, Forward, Edit).
+
+* Return type: `boolean`
+
+### 51. ShowDateHeaders
+Enable or disable all date headers (Today, Yesterday, etc.).
 
 * Return type: `boolean`

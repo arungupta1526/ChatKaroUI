@@ -78,6 +78,7 @@ public class ChatConfig {
     public boolean showReadStatus;
     public boolean showMetadataInsideBubble;
     public boolean showMetadataOutBubble;
+    public boolean showDateHeaders = true;
     public boolean squareBubbleEdge;
     public boolean autoLinkEnabledInChat;
     public boolean useResponsiveWidth;
