@@ -44,9 +44,6 @@ public class SwipeReplyCallback extends ItemTouchHelper.SimpleCallback {
     private final RecyclerView.Adapter<?> adapter;
 
     // Track which position was triggered so we don't re-fire on residual draw
-    // private long triggeredPosition = RecyclerView.NO_ID;
-
-    // NEW
     private int triggeredPosition = RecyclerView.NO_POSITION;
 
     public SwipeReplyCallback(List<MessageModel> messageList, RecyclerView.Adapter<?> adapter,

@@ -14,11 +14,11 @@ ChatKaroUI is a `customizable advance chat component extension` text, images, re
 🔎 **Use Place:** An extension for _`MIT App Inventor 2, Kodular, Niotron, Android Builder.`_ <br>
 👤 **Author:** Created by: [Prem_Gupta](https://community.appinventor.mit.edu/u/prem_gupta/summary) <br>
 📦 **Package:** com.prem.chatkaroui <br>
-💾 **Size:** 76.74 KB <br>
-⚙️ **Version:** 3.0 <br>
+💾 **Size:** 82 KB <br>
+⚙️ **Version:** 3.1 <br>
 📱 **Minimum API Level:** 14 <br>
 📅 **Built On:** [date=2025-09-02 timezone="Asia/Kolkata"] <br>
-📅 **Updated On:** [date=2026-03-28 timezone="Asia/Kolkata"] <br>
+📅 **Updated On:** [date=2026-03-29 timezone="Asia/Kolkata"] <br>
 🔗 **Help URL:** [Telegram](https://www.telegram.me/Arungupta1526) <br>
 💻 **Built & documented using:** [FAST](https://community.appinventor.mit.edu/t/fast-an-efficient-way-to-build-publish-extensions/129103?u=jewel) <small><mark>v5.7.1</mark></small> <br>
 ⬇️ **Aix:** [Download Link](./out/com.prem.chatkaroui.aix) <br>
@@ -215,7 +215,7 @@ Fired when the user taps Edit in the context menu (sent messages only).
 | currentMessage | text   |
 
 ## <kbd>Methods:</kbd>
-**ChatKaroUI** has total 59 methods.
+**ChatKaroUI** has total 62 methods.
 
 ### 1. Initialize
 Initialize the chat UI in a VerticalArrangement. Must be called before adding messages.
@@ -539,58 +539,78 @@ Get YouTube thumbnail URL from a YouTube URL or video ID.
 | ---------- | ---- |
 | youTubeURL | text |
 
-### 48. ArrangementWidthPx
+### 48. AddReaction
+Add a reaction emoji to a message.
+
+| Parameter | Type   |
+| --------- | ------ |
+| messageId | number |
+| emoji     | text   |
+
+### 49. InsertUnreadSeparator
+Insert an 'Unread messages' separator at current position.
+
+### 50. SearchMessages
+Search messages containing query text. Returns list of matching IDs.
+
+* Return type: `list`
+
+| Parameter | Type |
+| --------- | ---- |
+| query     | text |
+
+### 51. ArrangementWidthPx
 Returns the width in pixels of the VerticalArrangement (or screen width).
 
 * Return type: `number`
 
-### 49. ScreenWidthPx
+### 52. ScreenWidthPx
 Returns the screen width in pixels.
 
 * Return type: `number`
 
-### 50. ResetTextMessageMaxWidth
+### 53. ResetTextMessageMaxWidth
 Reset max width to 80% of screen width.
 
-### 51. ResetDateTracking
+### 54. ResetDateTracking
 Reset date-header tracking (useful when starting a fresh conversation).
 
-### 52. AddTextMenuItems
+### 55. AddTextMenuItems
 Add custom text menu items (replaces existing custom items).
 
 | Parameter | Type |
 | --------- | ---- |
 | menuItems | list |
 
-### 53. AddImageMenuItems
+### 56. AddImageMenuItems
 Add custom image menu items (replaces existing custom items).
 
 | Parameter | Type |
 | --------- | ---- |
 | menuItems | list |
 
-### 54. ClearTextMenuItems
+### 57. ClearTextMenuItems
 Clear custom text menu items.
 
-### 55. ClearImageMenuItems
+### 58. ClearImageMenuItems
 Clear custom image menu items.
 
-### 56. GetTextMenuItems
+### 59. GetTextMenuItems
 Get current text menu items as a list.
 
 * Return type: `list`
 
-### 57. GetImageMenuItems
+### 60. GetImageMenuItems
 Get current image menu items as a list.
 
 * Return type: `list`
 
-### 58. GetTextMenuItemsCount
+### 61. GetTextMenuItemsCount
 Get count of custom text menu items.
 
 * Return type: `number`
 
-### 59. GetImageMenuItemsCount
+### 62. GetImageMenuItemsCount
 Get count of custom image menu items.
 
 * Return type: `number`

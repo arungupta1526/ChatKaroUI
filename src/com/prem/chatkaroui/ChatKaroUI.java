@@ -1515,7 +1515,9 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
             MessageModel m = messageList.get(i);
             if (m.messageId > 0) {
                 messagePositionById.put(m.messageId, i);
-                latestDate = extractDateFrom(m.timestamp);
+                // latestDate = extractDateFrom(m.timestamp);
+                if (m.timestamp != null && !m.timestamp.isEmpty())
+                    latestDate = extractDateFrom(m.timestamp);
             }
         }
         lastMessageDate = latestDate;

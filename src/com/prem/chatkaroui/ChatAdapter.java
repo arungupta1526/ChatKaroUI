@@ -112,6 +112,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 return new SystemMessageVH(createSystemMessageView());
             case MessageModel.TYPE_TYPING_INDICATOR:
                 return new TypingVH(createTypingView());
+            case MessageModel.TYPE_UNREAD_SEPARATOR:
+                return new SystemMessageVH(createSystemMessageView());
             default:
                 return new MessageVH(createMessageRootView());
         }
@@ -123,7 +125,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if (holder instanceof DateHeaderVH)
             ((DateHeaderVH) holder).bind(model);
         else if (holder instanceof SystemMessageVH)
-            ((SystemMessageVH) holder).bind(model);
+            ((SystemMessageVH) holder).bind(model, config);
         else if (holder instanceof TypingVH)
             ((TypingVH) holder).bind(model);
         else if (holder instanceof MessageVH)
@@ -153,8 +155,14 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             tv = v;
         }
 
-        void bind(MessageModel m) {
+        // void bind(MessageModel m) {
+        // tv.setText(m.message);
+        // }
+
+        void bind(MessageModel m, ChatConfig cfg) {
             tv.setText(m.message);
+            tv.setTextColor(cfg.systemMessageTextColor);
+            tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, cfg.systemMessageFontSize);
         }
     }
 
@@ -728,7 +736,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         TextView tv = new TextView(context);
         tv.setTypeface(null, Typeface.BOLD);
         tv.setPadding(0, dpToPx(16), 0, dpToPx(8));
-        tv.setTextColor(android.graphics.Color.parseColor("#FF6200"));
+        tv.setTextColor(0xFFFF6200);
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         tv.setGravity(Gravity.CENTER);
         tv.setLayoutParams(new LinearLayout.LayoutParams(
@@ -738,8 +746,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private TextView createSystemMessageView() {
         TextView tv = new TextView(context);
-        tv.setTextColor(config.systemMessageTextColor);
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, config.systemMessageFontSize);
+        // tv.setTextColor(config.systemMessageTextColor);
+        // tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, config.systemMessageFontSize);
         tv.setGravity(Gravity.CENTER);
         tv.setPadding(dpToPx(16), dpToPx(8), dpToPx(16), dpToPx(8));
         tv.setLayoutParams(new LinearLayout.LayoutParams(
