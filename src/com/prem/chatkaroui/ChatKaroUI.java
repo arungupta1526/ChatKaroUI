@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 
 import static android.graphics.Color.parseColor;
 
-@DesignerComponent(version = 3, versionName = "3.2", description = "ChatKaroUI — customizable chat component with text, images, reply, star, "
+@DesignerComponent(version = 3, versionName = "3.3", description = "ChatKaroUI — customizable chat component with text, images, reply, star, "
         +
         "HTML/Markdown, export/import and more. " +
         "Made by: Arun Gupta <br>" +
@@ -117,6 +117,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
     private int avatarBackgroundColor = Color.LTGRAY;
     private int starredIndicatorColor = 0xFFFFD700;
     private int editedLabelColor = Color.GRAY;
+    private int sentReplyBubbleBgColor = 0x44FFFFFF;
     private int replyBubbleBgColor = 0x220084FF;
     private int replyAccentColor = parseColor("#0084ff");
     private int replyPreviewTextColor = 0xFF444444;
@@ -220,8 +221,9 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
 
                 @Override
                 public void showTextOptionsMenu(View anchor, String msg, int id,
-                        boolean isSent, boolean isStarred, String senderName, String avatarUrl) {
-                    ChatKaroUI.this.showTextOptionsMenu(anchor, msg, id, isSent, isStarred, senderName, avatarUrl);
+                        boolean isSent, boolean isStarred, String senderName, String avatarUrl, String imageUrl) {
+                    ChatKaroUI.this.showTextOptionsMenu(anchor, msg, id, isSent, isStarred, senderName, avatarUrl,
+                            imageUrl);
                 }
 
                 @Override
@@ -280,7 +282,8 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
                 String preview = m.message != null ? m.message : "";
                 String replySender = (m.senderName != null && !m.senderName.isEmpty()) ? m.senderName
                         : (m.isSentType() ? "You" : "");
-                ReplyTriggered(m.messageId, preview, replySender, m.avatarUrl, m.isSentType());
+                // v3.3: Passing imageUrl to ReplyTriggered
+                ReplyTriggered(m.messageId, preview, replySender, m.avatarUrl, m.imageUrl, m.isSentType());
             }
         });
         swipeHelper = new ItemTouchHelper(callback);
@@ -311,6 +314,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
         c.showEditedLabel = showEditedLabel;
         c.editedLabelText = editedLabelText;
         c.editedLabelColor = editedLabelColor;
+        c.sentReplyBubbleBgColor = sentReplyBubbleBgColor;
         c.replyBubbleBgColor = replyBubbleBgColor;
         c.replyAccentColor = replyAccentColor;
         c.replyPreviewTextColor = replyPreviewTextColor;
@@ -370,6 +374,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
         chatConfig.showEditedLabel = u.showEditedLabel;
         chatConfig.editedLabelText = u.editedLabelText;
         chatConfig.editedLabelColor = u.editedLabelColor;
+        chatConfig.sentReplyBubbleBgColor = u.sentReplyBubbleBgColor;
         chatConfig.replyBubbleBgColor = u.replyBubbleBgColor;
         chatConfig.replyAccentColor = u.replyAccentColor;
         chatConfig.replyPreviewTextColor = u.replyPreviewTextColor;
@@ -475,12 +480,12 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
                 message, imageUrl, avatarUrl, receiverName, timestamp, messageOnTop));
     }
 
-    @SimpleFunction(description = "Send a message as a reply to another message (shows a quote strip).")
-    public void SendReply(String message, String avatarUrl, String senderName, String timestamp,
+    @SimpleFunction(description = "Send a simple message as a reply WITHOUT avatar or name.")
+    public void SendReplySimple(String message, String timestamp,
             int replyToId, String replyToText, String replyToSender, boolean replyToIsSent) {
         int id = nextMessageId++;
-        MessageModel m = new MessageModel(id, MessageModel.TYPE_SENT_AVATAR,
-                message, avatarUrl, senderName, timestamp);
+        MessageModel m = new MessageModel(id, MessageModel.TYPE_SENT_SIMPLE,
+                message, "", "", timestamp);
         m.replyToId = replyToId;
         m.replyToText = replyToText;
         m.replyToSender = replyToSender;
@@ -488,13 +493,56 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
         addMessageInternal(m);
     }
 
-    @SimpleFunction(description = "Receive a message as a reply to another message (shows a quote strip).")
-    public void ReceiveReply(String message, String avatarUrl, String senderName,
-            String timestamp, int replyToId, String replyToText,
+    @SimpleFunction(description = "Send a message as a reply WITH avatar and sender name (and optional image).")
+    public void SendReplyAdvance(String message, String avatarUrl, String imageUrl,
+            String senderName, String timestamp, int replyToId, String replyToText,
             String replyToSender, boolean replyToIsSent) {
         int id = nextMessageId++;
-        MessageModel m = new MessageModel(id, MessageModel.TYPE_RECEIVED_AVATAR,
-                message, avatarUrl, senderName, timestamp);
+        int type = (imageUrl != null && !imageUrl.isEmpty()) ? MessageModel.TYPE_SENT_TEXT_IMAGE
+                : MessageModel.TYPE_SENT_AVATAR;
+
+        MessageModel m;
+        if (type == MessageModel.TYPE_SENT_TEXT_IMAGE) {
+            m = new MessageModel(id, type, message, imageUrl, avatarUrl, senderName, timestamp, true);
+        } else {
+            m = new MessageModel(id, type, message, avatarUrl, senderName, timestamp);
+        }
+
+        m.replyToId = replyToId;
+        m.replyToText = replyToText;
+        m.replyToSender = replyToSender;
+        m.replyToIsSent = replyToIsSent;
+        addMessageInternal(m);
+    }
+
+    @SimpleFunction(description = "Receive a simple message as a reply WITHOUT avatar or name.")
+    public void ReceiveReplySimple(String message, String timestamp,
+            int replyToId, String replyToText, String replyToSender, boolean replyToIsSent) {
+        int id = nextMessageId++;
+        MessageModel m = new MessageModel(id, MessageModel.TYPE_RECEIVED_SIMPLE,
+                message, "", "", timestamp);
+        m.replyToId = replyToId;
+        m.replyToText = replyToText;
+        m.replyToSender = replyToSender;
+        m.replyToIsSent = replyToIsSent;
+        addMessageInternal(m);
+    }
+
+    @SimpleFunction(description = "Receive a message as a reply WITH avatar and sender name (and optional image).")
+    public void ReceiveReplyAdvance(String message, String avatarUrl, String imageUrl,
+            String senderName, String timestamp, int replyToId, String replyToText,
+            String replyToSender, boolean replyToIsSent) {
+        int id = nextMessageId++;
+        int type = (imageUrl != null && !imageUrl.isEmpty()) ? MessageModel.TYPE_RECEIVED_TEXT_IMAGE
+                : MessageModel.TYPE_RECEIVED_AVATAR;
+
+        MessageModel m;
+        if (type == MessageModel.TYPE_RECEIVED_TEXT_IMAGE) {
+            m = new MessageModel(id, type, message, imageUrl, avatarUrl, senderName, timestamp, true);
+        } else {
+            m = new MessageModel(id, type, message, avatarUrl, senderName, timestamp);
+        }
+
         m.replyToId = replyToId;
         m.replyToText = replyToText;
         m.replyToSender = replyToSender;
@@ -681,9 +729,9 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
 
     @SimpleEvent(description = "Fired when a message is swiped or reply menu item is clicked.")
     public void ReplyTriggered(int messageId, String messageText, String replyToSender,
-            String avatarUrl, boolean isSent) {
+            String avatarUrl, String imageUrl, boolean isSent) {
         EventDispatcher.dispatchEvent(this, "ReplyTriggered", messageId, messageText,
-                replyToSender, avatarUrl, isSent);
+                replyToSender, avatarUrl, imageUrl, isSent);
     }
 
     @SimpleEvent(description = "Fired when the user taps the reply-quote strip inside a message " +
@@ -1387,7 +1435,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
 
     // ── Context / menu ───────────────────────────────────────────────────────
     public void showTextOptionsMenu(View anchor, String message, int messageId,
-            boolean isSent, boolean isStarred, String senderName, String avatarUrl) {
+            boolean isSent, boolean isStarred, String senderName, String avatarUrl, String imageUrl) {
         PopupMenu menu = new PopupMenu(context, anchor);
 
         if (showDefaultMenuItems) {
@@ -1414,7 +1462,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
                 case "Reply":
                     String replySender = (senderName != null && !senderName.isEmpty()) ? senderName
                             : (isSent ? "You" : "");
-                    ReplyTriggered(messageId, message, replySender, avatarUrl, isSent);
+                    ReplyTriggered(messageId, message, replySender, avatarUrl, imageUrl, isSent);
                     break;
                 case "Forward":
                     ForwardTriggered(messageId, message);
@@ -2496,7 +2544,7 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
         refreshChatConfig();
     }
 
-    // ── NEW v4.0 Properties ───────────────────────────────────────────────────
+    // ── NEW Properties ───────────────────────────────────────────────────
 
     @SimpleProperty(description = "Enable rendering of HTML tags in message text.")
     public boolean HtmlEnabledInChat() {
@@ -2618,7 +2666,19 @@ public class ChatKaroUI extends AndroidNonvisibleComponent
         refreshChatConfig();
     }
 
-    @SimpleProperty(description = "Background color of the reply-quote strip.")
+    @SimpleProperty(description = "Background color of the reply-quote strip on SENT messages.")
+    public int SentReplyBubbleBgColor() {
+        return sentReplyBubbleBgColor;
+    }
+
+    @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_COLOR, defaultValue = "&H44FFFFFF")
+    @SimpleProperty(description = "Sets or gets SentReplyBubbleBgColor.")
+    public void SentReplyBubbleBgColor(int v) {
+        sentReplyBubbleBgColor = v;
+        refreshChatConfig();
+    }
+
+    @SimpleProperty(description = "Background color of the reply-quote strip on RECEIVED messages.")
     public int ReplyBubbleBgColor() {
         return replyBubbleBgColor;
     }

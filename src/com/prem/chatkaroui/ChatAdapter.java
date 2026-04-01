@@ -50,7 +50,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         void onProfilePictureClicked(String name, String avatarUrl);
 
         void showTextOptionsMenu(View anchor, String message, int messageId, boolean isSent, boolean isStarred,
-                String senderName, String avatarUrl);
+                String senderName, String avatarUrl, String imageUrl);
 
         void showImageOptionsMenu(View anchor, String imageUrl, ImageView imageView, int messageId);
 
@@ -468,7 +468,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     } else {
                         cb.onMessageSelected(msgText, msgId);
                         v.post(() -> cb.showTextOptionsMenu(innerContent, msgText, msgId, isSent, starred,
-                                model.senderName, model.avatarUrl));
+                                model.senderName, model.avatarUrl, model.imageUrl));
                     }
                 }
                 return true;

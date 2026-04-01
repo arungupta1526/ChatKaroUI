@@ -41,6 +41,7 @@ public class ChatConfig {
     public int editedLabelColor = 0xFF888888;
 
     // ── Reply bubble ─────────────────────────────────────────────────────────
+    public int sentReplyBubbleBgColor = 0x44FFFFFF; // v3.3+: New property
     public int replyBubbleBgColor = 0x220084FF; // semi-transparent sent color
     public int replyAccentColor = 0xFF0084FF; // left-border accent
     public int replyPreviewTextColor = 0xFF444444; // message preview text color
@@ -110,9 +111,8 @@ public class ChatConfig {
      */
     public GradientDrawable createReplyDrawable(boolean isSent) {
         GradientDrawable shape = new GradientDrawable();
-        // Sent messages (blue) look better with a semi-transparent white quote box.
-        // Received messages (light gray) look better with the existing replyBubbleBgColor.
-        shape.setColor(isSent ? 0x44FFFFFF : replyBubbleBgColor);
+        // v3.3+: Both are now customizable
+        shape.setColor(isSent ? sentReplyBubbleBgColor : replyBubbleBgColor);
         shape.setCornerRadius(messageCornerRadius * 0.5f);
         return shape;
     }
