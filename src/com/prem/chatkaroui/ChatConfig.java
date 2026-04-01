@@ -110,7 +110,9 @@ public class ChatConfig {
      */
     public GradientDrawable createReplyDrawable(boolean isSent) {
         GradientDrawable shape = new GradientDrawable();
-        shape.setColor(replyBubbleBgColor);
+        // Sent messages (blue) look better with a semi-transparent white quote box.
+        // Received messages (light gray) look better with the existing replyBubbleBgColor.
+        shape.setColor(isSent ? 0x44FFFFFF : replyBubbleBgColor);
         shape.setCornerRadius(messageCornerRadius * 0.5f);
         return shape;
     }
