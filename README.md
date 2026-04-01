@@ -43,7 +43,7 @@ Fired when a message is starred or unstarred.
 | isStarred | boolean |
 
 ### 2. ReplyTriggered
-Fired when the user swipes a message to reply. Use messageId and messageText to populate your reply input field.
+Fired when a message is swiped or reply menu item is clicked.
 
 | Parameter     | Type    |
 | ------------- | ------- |
@@ -51,6 +51,7 @@ Fired when the user swipes a message to reply. Use messageId and messageText to 
 | messageText   | text    |
 | replyToSender | text    |
 | avatarUrl     | text    |
+| imageUrl      | text    |
 | isSent        | boolean |
 
 ### 3. ReplyQuoteTapped
@@ -217,7 +218,7 @@ Fired when the user taps Edit in the context menu (sent messages only).
 | currentMessage | text   |
 
 ## <kbd>Methods:</kbd>
-**ChatKaroUI** has total 62 methods.
+**ChatKaroUI** has total 64 methods.
 
 ### 1. Initialize
 Initialize the chat UI in a VerticalArrangement. Must be called before adding messages.
@@ -289,13 +290,26 @@ Receive a message with both text and image.
 | timestamp    | text    |
 | messageOnTop | boolean |
 
-### 9. SendReply
-Send a message as a reply to another message (shows a quote strip).
+### 9. SendReplySimple
+Send a simple message as a reply WITHOUT avatar or name.
+
+| Parameter     | Type    |
+| ------------- | ------- |
+| message       | text    |
+| timestamp     | text    |
+| replyToId     | number  |
+| replyToText   | text    |
+| replyToSender | text    |
+| replyToIsSent | boolean |
+
+### 10. SendReplyAdvance
+Send a message as a reply WITH avatar and sender name (and optional image).
 
 | Parameter     | Type    |
 | ------------- | ------- |
 | message       | text    |
 | avatarUrl     | text    |
+| imageUrl      | text    |
 | senderName    | text    |
 | timestamp     | text    |
 | replyToId     | number  |
@@ -303,13 +317,26 @@ Send a message as a reply to another message (shows a quote strip).
 | replyToSender | text    |
 | replyToIsSent | boolean |
 
-### 10. ReceiveReply
-Receive a message as a reply to another message (shows a quote strip).
+### 11. ReceiveReplySimple
+Receive a simple message as a reply WITHOUT avatar or name.
+
+| Parameter     | Type    |
+| ------------- | ------- |
+| message       | text    |
+| timestamp     | text    |
+| replyToId     | number  |
+| replyToText   | text    |
+| replyToSender | text    |
+| replyToIsSent | boolean |
+
+### 12. ReceiveReplyAdvance
+Receive a message as a reply WITH avatar and sender name (and optional image).
 
 | Parameter     | Type    |
 | ------------- | ------- |
 | message       | text    |
 | avatarUrl     | text    |
+| imageUrl      | text    |
 | senderName    | text    |
 | timestamp     | text    |
 | replyToId     | number  |
@@ -317,28 +344,28 @@ Receive a message as a reply to another message (shows a quote strip).
 | replyToSender | text    |
 | replyToIsSent | boolean |
 
-### 11. AddSystemMessage
+### 13. AddSystemMessage
 Add a system message (e.g., 'User joined').
 
 | Parameter | Type |
 | --------- | ---- |
 | message   | text |
 
-### 12. StarMessageById
+### 14. StarMessageById
 Star (bookmark) a message by its ID.
 
 | Parameter | Type   |
 | --------- | ------ |
 | messageId | number |
 
-### 13. UnstarMessageById
+### 15. UnstarMessageById
 Unstar a previously starred message by its ID.
 
 | Parameter | Type   |
 | --------- | ------ |
 | messageId | number |
 
-### 14. ToggleStarById
+### 16. ToggleStarById
 Toggle the starred state of a message. Returns the new state.
 
 * Return type: `boolean`
@@ -347,7 +374,7 @@ Toggle the starred state of a message. Returns the new state.
 | --------- | ------ |
 | messageId | number |
 
-### 15. IsMessageStarred
+### 17. IsMessageStarred
 Returns true if the message with the given ID is starred.
 
 * Return type: `boolean`
@@ -356,22 +383,22 @@ Returns true if the message with the given ID is starred.
 | --------- | ------ |
 | messageId | number |
 
-### 16. GetStarredMessageIds
+### 18. GetStarredMessageIds
 Returns a list of all currently starred message IDs.
 
 * Return type: `list`
 
-### 17. ExportChatAsJson
+### 19. ExportChatAsJson
 Export all chat messages as a JSON string. Store this string in a database or file to restore the chat later.
 
 * Return type: `text`
 
-### 18. ExportChatAsText
+### 20. ExportChatAsText
 Export the chat as a plain-text transcript (human-readable).
 
 * Return type: `text`
 
-### 19. SaveExportToFile
+### 21. SaveExportToFile
 Save exported JSON to a file in the chat-exports folder under ASD. Fires ExportSaved or ExportFailed.
 
 | Parameter | Type |
@@ -379,21 +406,21 @@ Save exported JSON to a file in the chat-exports folder under ASD. Fires ExportS
 | json      | text |
 | fileName  | text |
 
-### 20. ImportChatFromJson
+### 22. ImportChatFromJson
 Load a previously exported JSON string and restore all messages.
 
 | Parameter | Type |
 | --------- | ---- |
 | json      | text |
 
-### 21. DeleteMessageById
+### 23. DeleteMessageById
 Delete a message by its ID.
 
 | Parameter | Type   |
 | --------- | ------ |
 | messageId | number |
 
-### 22. UpdateMessageById
+### 24. UpdateMessageById
 Update an existing message's text by ID. Marks it as edited.
 
 | Parameter  | Type   |
@@ -401,7 +428,7 @@ Update an existing message's text by ID. Marks it as edited.
 | messageId  | number |
 | newMessage | text   |
 
-### 23. GetMessageTextById
+### 25. GetMessageTextById
 Get the text of a message by its ID.
 
 * Return type: `text`
@@ -410,14 +437,14 @@ Get the text of a message by its ID.
 | --------- | ------ |
 | messageId | number |
 
-### 24. GotoMessageById
+### 26. GotoMessageById
 Smooth-scroll to a message by its ID.
 
 | Parameter | Type   |
 | --------- | ------ |
 | messageId | number |
 
-### 25. MessageExists
+### 27. MessageExists
 Returns true if a message with the given ID exists.
 
 * Return type: `boolean`
@@ -426,12 +453,12 @@ Returns true if a message with the given ID exists.
 | --------- | ------ |
 | messageId | number |
 
-### 26. GetAllMessageIds
+### 28. GetAllMessageIds
 Get all active message IDs (excludes date headers and system messages).
 
 * Return type: `list`
 
-### 27. IsMessageSent
+### 29. IsMessageSent
 Returns true if the message was sent (false = received).
 
 * Return type: `boolean`
@@ -440,7 +467,7 @@ Returns true if the message was sent (false = received).
 | --------- | ------ |
 | messageId | number |
 
-### 28. IsMessageEdited
+### 30. IsMessageEdited
 Returns true if a message has been edited.
 
 * Return type: `boolean`
@@ -449,69 +476,69 @@ Returns true if a message has been edited.
 | --------- | ------ |
 | messageId | number |
 
-### 29. MarkAsEdited
+### 31. MarkAsEdited
 Manually mark a message as edited without changing its content.
 
 | Parameter | Type   |
 | --------- | ------ |
 | messageId | number |
 
-### 30. CleanupIdTracking
+### 32. CleanupIdTracking
 Clean up internal ID tracking. Call after ClearAllMessages.
 
-### 31. ClearAllMessages
+### 33. ClearAllMessages
 Clear all chat messages.
 
-### 32. GetMessageCount
+### 34. GetMessageCount
 Get the total count of chat messages (excluding system/date rows).
 
 * Return type: `number`
 
-### 33. GetFirstMessageId
+### 35. GetFirstMessageId
 Get the first (oldest) active message ID. Returns 0 if none.
 
 * Return type: `number`
 
-### 34. GetLastMessageId
+### 36. GetLastMessageId
 Get the last (newest) active message ID. Returns 0 if none.
 
 * Return type: `number`
 
-### 35. ClearSelection
+### 37. ClearSelection
 Clear all message selections.
 
-### 36. GetSelectedMessageIds
+### 38. GetSelectedMessageIds
 Get a list of all currently selected message IDs.
 
 * Return type: `list`
 
-### 37. StarSelectedMessages
+### 39. StarSelectedMessages
 Star/Unstar all currently selected messages.
 
 | Parameter | Type    |
 | --------- | ------- |
 | isStarred | boolean |
 
-### 38. GetSelectedCount
+### 40. GetSelectedCount
 Get the number of selected messages.
 
 * Return type: `number`
 
-### 39. DeleteSelectedMessages
+### 41. DeleteSelectedMessages
 Delete all currently selected messages.
 
-### 40. IsMultiSelectionActive
+### 42. IsMultiSelectionActive
 Returns true if multi-selection mode is active.
 
 * Return type: `boolean`
 
-### 41. ShowTypingIndicator
+### 43. ShowTypingIndicator
 Show typing indicator.
 
-### 42. HideTypingIndicator
+### 44. HideTypingIndicator
 Hide typing indicator.
 
-### 43. DownloadImage
+### 45. DownloadImage
 Download an image from URL and save to chat-images folder. Fires ImageSaved, ImageAlreadyExists, or ImageSaveFailed.
 
 | Parameter | Type |
@@ -519,24 +546,24 @@ Download an image from URL and save to chat-images folder. Fires ImageSaved, Ima
 | imageUrl  | text |
 | format    | text |
 
-### 44. CopyToClipboard
+### 46. CopyToClipboard
 Copy text to clipboard.
 
 | Parameter | Type |
 | --------- | ---- |
 | text      | text |
 
-### 45. GetCurrentTime
+### 47. GetCurrentTime
 Get current time formatted as hh:mm a.
 
 * Return type: `text`
 
-### 46. GetCurrentDate
+### 48. GetCurrentDate
 Get current date formatted as dd-MM-yyyy.
 
 * Return type: `text`
 
-### 47. GetYouTubeThumbnail
+### 49. GetYouTubeThumbnail
 Get YouTube thumbnail URL from a YouTube URL or video ID.
 
 * Return type: `text`
@@ -545,7 +572,7 @@ Get YouTube thumbnail URL from a YouTube URL or video ID.
 | ---------- | ---- |
 | youTubeURL | text |
 
-### 48. AddReaction
+### 50. AddReaction
 Add a reaction emoji to a message.
 
 | Parameter | Type   |
@@ -553,10 +580,10 @@ Add a reaction emoji to a message.
 | messageId | number |
 | emoji     | text   |
 
-### 49. InsertUnreadSeparator
+### 51. InsertUnreadSeparator
 Insert an 'Unread messages' separator at current position.
 
-### 50. SearchMessages
+### 52. SearchMessages
 Search messages containing query text. Returns list of matching IDs.
 
 * Return type: `list`
@@ -565,64 +592,64 @@ Search messages containing query text. Returns list of matching IDs.
 | --------- | ---- |
 | query     | text |
 
-### 51. ArrangementWidthPx
+### 53. ArrangementWidthPx
 Returns the width in pixels of the VerticalArrangement (or screen width).
 
 * Return type: `number`
 
-### 52. ScreenWidthPx
+### 54. ScreenWidthPx
 Returns the screen width in pixels.
 
 * Return type: `number`
 
-### 53. ResetTextMessageMaxWidth
+### 55. ResetTextMessageMaxWidth
 Reset max width to 80% of screen width.
 
-### 54. ResetDateTracking
+### 56. ResetDateTracking
 Reset date-header tracking (useful when starting a fresh conversation).
 
-### 55. AddTextMenuItems
+### 57. AddTextMenuItems
 Add custom text menu items (replaces existing custom items).
 
 | Parameter | Type |
 | --------- | ---- |
 | menuItems | list |
 
-### 56. AddImageMenuItems
+### 58. AddImageMenuItems
 Add custom image menu items (replaces existing custom items).
 
 | Parameter | Type |
 | --------- | ---- |
 | menuItems | list |
 
-### 57. ClearTextMenuItems
+### 59. ClearTextMenuItems
 Clear custom text menu items.
 
-### 58. ClearImageMenuItems
+### 60. ClearImageMenuItems
 Clear custom image menu items.
 
-### 59. GetTextMenuItems
+### 61. GetTextMenuItems
 Get current text menu items as a list.
 
 * Return type: `list`
 
-### 60. GetImageMenuItems
+### 62. GetImageMenuItems
 Get current image menu items as a list.
 
 * Return type: `list`
 
-### 61. GetTextMenuItemsCount
+### 63. GetTextMenuItemsCount
 Get count of custom text menu items.
 
 * Return type: `number`
 
-### 62. GetImageMenuItemsCount
+### 64. GetImageMenuItemsCount
 Get count of custom image menu items.
 
 * Return type: `number`
 
 ## <kbd>Designer:</kbd>
-**ChatKaroUI** has total 51 designer properties.
+**ChatKaroUI** has total 52 designer properties.
 
 ### 1. AvatarSize
 
@@ -848,38 +875,43 @@ Get count of custom image menu items.
 * Input type: `string`
 * Default value: `★`
 
-### 46. ReplyBubbleBgColor
+### 46. SentReplyBubbleBgColor
+
+* Input type: `color`
+* Default value: `FFFFFF`
+
+### 47. ReplyBubbleBgColor
 
 * Input type: `color`
 * Default value: `0084FF`
 
-### 47. ReplyAccentColor
+### 48. ReplyAccentColor
 
 * Input type: `color`
 * Default value: `0084FF`
 
-### 48. ReplyPreviewTextColor
+### 49. ReplyPreviewTextColor
 
 * Input type: `color`
 * Default value: `444444`
 
-### 49. SwipeToReplyEnabled
+### 50. SwipeToReplyEnabled
 
 * Input type: `boolean`
 * Default value: `True`
 
-### 50. ShowDefaultMenuItems
+### 51. ShowDefaultMenuItems
 
 * Input type: `boolean`
 * Default value: `True`
 
-### 51. ShowDateHeaders
+### 52. ShowDateHeaders
 
 * Input type: `boolean`
 * Default value: `True`
 
 ## <kbd>Setters:</kbd>
-**ChatKaroUI** has total 51 setter properties.
+**ChatKaroUI** has total 52 setter properties.
 
 ### 1. AvatarSize
 Get avatar size in DP.
@@ -1106,38 +1138,43 @@ Text/emoji shown as the star indicator (default: ★).
 
 * Input type: `text`
 
-### 46. ReplyBubbleBgColor
-Background color of the reply-quote strip.
+### 46. SentReplyBubbleBgColor
+Background color of the reply-quote strip on SENT messages.
 
 * Input type: `number`
 
-### 47. ReplyAccentColor
+### 47. ReplyBubbleBgColor
+Background color of the reply-quote strip on RECEIVED messages.
+
+* Input type: `number`
+
+### 48. ReplyAccentColor
 Accent color of the reply-quote left border.
 
 * Input type: `number`
 
-### 48. ReplyPreviewTextColor
+### 49. ReplyPreviewTextColor
 The color of the text preview inside the reply-quote.
 
 * Input type: `number`
 
-### 49. SwipeToReplyEnabled
+### 50. SwipeToReplyEnabled
 Enable or disable swipe-to-reply gesture.
 
 * Input type: `boolean`
 
-### 50. ShowDefaultMenuItems
+### 51. ShowDefaultMenuItems
 Show or hide default context-menu items (Reply, Star, Copy, Delete, Forward, Edit).
 
 * Input type: `boolean`
 
-### 51. ShowDateHeaders
-Enable or disable all date headers (Today, Yesterday, etc.).
+### 52. ShowDateHeaders
+Whether to show date headers in the chat.
 
 * Input type: `boolean`
 
 ## <kbd>Getters:</kbd>
-**ChatKaroUI** has total 51 getter properties.
+**ChatKaroUI** has total 52 getter properties.
 
 ### 1. AvatarSize
 Get avatar size in DP.
@@ -1364,32 +1401,37 @@ Text/emoji shown as the star indicator (default: ★).
 
 * Return type: `text`
 
-### 46. ReplyBubbleBgColor
-Background color of the reply-quote strip.
+### 46. SentReplyBubbleBgColor
+Background color of the reply-quote strip on SENT messages.
 
 * Return type: `number`
 
-### 47. ReplyAccentColor
+### 47. ReplyBubbleBgColor
+Background color of the reply-quote strip on RECEIVED messages.
+
+* Return type: `number`
+
+### 48. ReplyAccentColor
 Accent color of the reply-quote left border.
 
 * Return type: `number`
 
-### 48. ReplyPreviewTextColor
+### 49. ReplyPreviewTextColor
 The color of the text preview inside the reply-quote.
 
 * Return type: `number`
 
-### 49. SwipeToReplyEnabled
+### 50. SwipeToReplyEnabled
 Enable or disable swipe-to-reply gesture.
 
 * Return type: `boolean`
 
-### 50. ShowDefaultMenuItems
+### 51. ShowDefaultMenuItems
 Show or hide default context-menu items (Reply, Star, Copy, Delete, Forward, Edit).
 
 * Return type: `boolean`
 
-### 51. ShowDateHeaders
-Enable or disable all date headers (Today, Yesterday, etc.).
+### 52. ShowDateHeaders
+Whether to show date headers in the chat.
 
 * Return type: `boolean`
